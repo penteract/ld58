@@ -10,6 +10,10 @@ body,.part,#boxui{
   width:700px;
   display:inline-block;
 }
+#config{
+  display:inline-block;
+  vertical-align:top;
+}
 #sidediv{
   text-align: right;
   display:inline-block;
@@ -41,7 +45,7 @@ svg circle{
 "use strict";
 let parts = [
   {
-    x:1/4, y:1/4, w:1/2,h:1/2,rot:10
+    x:1/4, y:1/4, w:1/2,h:1/2,rot:15
   },
   {
     x:1/4, y:3/4, w:1/2,h:1/2,rot:0
@@ -50,7 +54,7 @@ let parts = [
     x:3/4, y:3/4, w:1/2,h:1/2,rot:0
   },
   {
-    x:1/2, y:280/500, w:1/2,h:1/2,rot:0
+    x:1/2, y:1/2, w:1/2,h:1/2,rot:0
   }
   /*{
     x:2/4, y:2/4, w:1,h:1,rot:0
@@ -78,6 +82,29 @@ function partToMatrix(p){
 <div id="maindiv">
 <canvas id="bigPic" width=700 height=700>
 </canvas>
+<div style="margin-left:8px">
+<form name="buttons">
+<button>Save Fractal</button><br>
+<input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons/widths</label><br>
+<input type="checkbox" id="match" name="match" checked="true"><label for="match">Match width and height (make/keep parts square when adjusted) </label><br>
+<input type="checkbox" id="center" name="center" checked="true"><label for="center">Resize around center </label>
+
+<!--<fieldset>
+  <legend>Snap position</legend>
+  <input type="radio" >
+</fieldset>-->
+</form>
+<h2>Controls:</h2>
+<ul>
+  <li>Mouse: Select, move, resize and rotate part</li>
+  <li>Tab or N: Cycle through parts</li>
+  <li>Arrow Keys or wasd: Move selected part</li>
+  <li>q/e: Rotate selected left/right</li>
+  <li>Space: redraw with detail</li>
+</ul>
+</div>
+</div>
+<div id="config">
 </div>
 <div id="sidediv">
 a<br>
@@ -98,21 +125,79 @@ ctx.strokeRect(ox,oy,w,h)
 
 // let p = {x:ox+w/2,y:oy+h/2}
 //let ptsz=2
-function drawFractal(n){
+function drawFractal(n,count){
   bigPic.width|=0
   let mats = parts.map(partToMatrix)
   let ptsz = Math.sqrt(w*h/n)
   //ptsz*ptsz*n=w*h
-  let sqn = Math.sqrt(n)
   let p = {x:ox+w/2,y:oy+h/2}
-  
-  for(let i=0;i<sqn;i++){
+  let containers
+  if(count){
+    containers = []
+    for(let i=0;i<=Math.min(8,Math.log2(n));i++){
+      let l=[]
+      for(let x=0;x<(1<<i);x++)
+        l.push(new Array(1<<i).fill(0))
+      containers.push(l)
+    }
+  }
+  let rtn = Math.sqrt(n)
+  let mx=-Infinity
+  let my=-Infinity
+  let nx=Infinity
+  let ny=Infinity
+  let mxs = {x:-Infinity,y:-Infinity}
+  let mns = {x:Infinity,y:Infinity}
+  for(let i=0;i<100;i++){
     p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+  }
+  for(let i=0;i<rtn;i++){
+    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+    for(let c of "xy"){
+      if(mxs[c]<p[c])mxs[c]=p[c]
+      if(mns[c]>p[c])mns[c]=p[c]
+    }
   }
   for(let i=0;i<n;i++){
     p = mats[(Math.random()*mats.length)|0].transformPoint(p)
-    if(i>sqn)ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
+    ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
+    if(count){
+      let x=p.x-ox
+      let y=p.y-oy
+      if(x>=0 && x<w && y>=0 && y<h){
+        containers.map((c,i)=>c[((x<<i)/w)|0 ][((y<<i)/h)|0]+=1)
+      }
+    }
   }
+  ctx.strokeRect(ox,oy,w,h)
+  return containers
+}
+
+let f12 = new Array(13).fill(0).map((e,i)=>i/12)
+let sqrts = new Array(13).fill(0).flatMap((e,i)=>{
+  let rt = Math.sqrt(i)
+  let a=[]
+  for(let j=1; j/rt <1; j++){
+    a.push(j/rt)
+  }
+  return a
+})
+let snapvalues=f12.concat(sqrts).sort()
+snapvalues=snapvalues.reverse().map(x=>-x).concat(snapvalues)
+for(let i=0;i+1<snapvalues.length;){
+  if(snapvalues[i]==snapvalues[i+1])snapvalues.splice(i,1)
+  else i++
+}
+
+function bsearch(a,v){
+  let l=0
+  let r=a.length
+  while(r>l+1){
+    let m=(l+r)>>1
+    if(v<a[m])r=m
+    else l=m
+  }
+  return
 }
 
 function drawPartdivs(parts){
@@ -150,7 +235,7 @@ function drawBox(part){
   return box
 }
 
-function transformChanged(part){
+function transformChanged(part,noRedrawFractal){
   let mat = partToMatrix(part)
   for (let dx of [-1,0,1])for (let dy of [-1,0,1]) {
     let c=part[[dx,dy]]
@@ -163,7 +248,7 @@ function transformChanged(part){
     }
   }
   part.div.style.transform = mat.translate(ox,oy)
-  drawFractal(10000)
+  if(!noRedrawFractal) drawFractal(10000)
 }
 /*
 function drawBoxes(){
@@ -171,17 +256,26 @@ function drawBoxes(){
 }*/
 let selected
 function selectAndMovePart(p,e){
-  selected=p
+  selectPart(p)
   let initex=e.pageX
   let initey=e.pageY
   let original = {x:p.x,y:p.y}
-  boxui.replaceChildren(drawBox(p))
-  transformChanged(p)
   return (e)=>{
     p.x=original.x+(e.pageX-initex)/w
     p.y=original.y+(e.pageY-initey)/h
     transformChanged(p)
   }
+}
+function selectPart(p){
+  if(selected!==p){
+    selected=p
+    boxui.replaceChildren(drawBox(p))
+    transformChanged(p,true)
+  }
+}
+function deselect(){
+  selected=undefined
+  boxui.replaceChildren()
 }
 let ot = bigPic.offsetTop // for adjusting the mouse 
 let ol = bigPic.offsetLeft
@@ -200,38 +294,28 @@ function chooseResize(dx,dy,part){
       transformChanged(part)
     }
   }
-  //TODO: sort this out !!!
   let o = {w:part.w,h:part.h}
   //transform original into rotated coordinates
   let cmat = idmat.translate(1/2,1/2).rotate(-part.rot).translate(-1/2,-1/2)
   let cmati = cmat.inverse()
   let ro = cmat.transformPoint({x:part.x,y:part.y})
 
-  // idmat.rotate(part.rot)
   // Transform m into unit-square (rotated) coordinates
-  //.multiply(spmat)
   let unrot = idmat.scale(1/w,1/h).translate(w/2,h/2).rotate(-part.rot).translate(-w/2-ox,-h/2-oy).translate(-ol,-ot);
-
   return (e) => {
-    // console.log(e,unrot.transformPoint({x:e.pageX,y:e.pageY})
-    let rt = unrot.transformPoint({x:e.pageX,y:e.pageY})
-    let nx=dx?(rt.x+ro.x-dx*o.w/2)/2:ro.x
-    let ny=dy?(rt.y+ro.y-dy*o.h/2)/2:ro.y
+    let m = unrot.transformPoint({x:e.pageX,y:e.pageY})
+    // ro.x-dx*o.w/2 = n.x-dx*n.w/2
+    // n.x+dx*n.w/2 = m.x
+    let nx=dx?(m.x+ro.x-dx*o.w/2)/2:ro.x
+    let ny=dy?(m.y+ro.y-dy*o.h/2)/2:ro.y
     let {x,y}=cmati.transformPoint({x:nx,y:ny})
     part.x=x
-    part.y=y // need to change both
+    part.y=y // need to change both in case of rotation
     if(dx){
-      // o.x-dx*o.w/2 = n.x-dx*n.w/2
-      // n.x+dx*n.w/2 = rt.x
-      
-      
-      part.w=(rt.x-ro.x+dx*o.w/2)/dx
-      //part.w = 
-
-      console.log(ro.x-dx*o.w/2, nx-dx*part.w/2)
+      part.w=(m.x-ro.x+dx*o.w/2)/dx
     }
     if(dy){
-      part.h=(rt.y-ro.y+dy*o.h/2)/dy
+      part.h=(m.y-ro.y+dy*o.h/2)/dy
     }
     //spmat.inverse().translate((part.x-1/2)*h,(p.y-1/2)*w).rotate(part.rot).multiply(spmat);
     transformChanged(part);
@@ -239,15 +323,72 @@ function chooseResize(dx,dy,part){
 }
 
 document.addEventListener("pointermove",(e)=> {moveAction(e)})
+let conts
 function pointerEnd(e){
-    drawFractal(100000)
-    moveAction = ()=>{}
+  drawCarefully()
+  moveAction = ()=>{}
+}
+function drawCarefully(){
+  conts = drawFractal(100000,true)
+  console.log(calcDim(conts))
 }
 document.addEventListener("pointerup",pointerEnd)
 document.addEventListener("pointercancel",pointerEnd)
 
 document.addEventListener("pointerdown",(e)=>
   console.log(e,e.x,e.y)
+)
+document.addEventListener("keydown",(e)=>{
+    if(selected){
+      console.log(e)
+      switch(e.key){
+        case "d":
+        case "ArrowRight":
+          selected.x+=1/60
+          transformChanged(selected)
+          break;
+        case "a":
+        case "ArrowLeft":
+          selected.x-=1/60
+          transformChanged(selected)
+          break;
+        case "s":
+        case "ArrowDown":
+          selected.y+=1/60
+          transformChanged(selected)
+          break;
+        case "w":
+        case "ArrowUp":
+          selected.y-=1/60
+          transformChanged(selected)
+          break;
+        case "q":
+          selected.rot-=15
+          transformChanged(selected)
+          break;
+        case "e":
+          selected.rot+=15
+          transformChanged(selected)
+          break;
+        case " ":
+          drawCarefully()
+          break;
+        case "Tab":
+        case "n":
+          for(let i=0;i<parts.length;i++){
+            if(selected==parts[i]) {
+              selectPart(parts[(i+1)%parts.length])/*
+              if(i+1<parts.length) selectPart(parts[i+1])
+              else deselect()*/
+              break;
+            }
+            if(i+1==parts.length)selectPart(parts[0])
+          }
+          e.preventDefault()
+          break;
+      }
+    }
+  }
 )
 
 drawPartdivs(parts)
@@ -256,12 +397,19 @@ drawFractal(10000)
 function logparts(){
   console.log("[" + parts.map(p=> "{"+["x","y","w","h","rot"].map(c=>c+":"+p[c]).join(",")+"}" ).join(",")+"]")
 }
+function calcDim(conts){
+  return conts.map((c,i)=>{
+    let ni = c.reduce(((a,r)=>a+r.reduce(((a,b)=>a+(b!=0)),0)),0)
+    return Math.log2(ni)/i
+  })
 
+}
+selectPart(parts[0])
 //drawBoxes()
 /*
 TODO: 
 arrow keys
-
+add snapping to rational square roots
 */
 </script>
 </body>
