@@ -125,6 +125,7 @@ d<br>
   <li>Arrow Keys or wasd: Move selected part</li>
   <li>q/e: Rotate selected left/right</li>
   <li>Space: redraw with detail</li>
+  <li>Delete: Remove selected part</li>
 </ul>
 </div>
 </div>
@@ -363,7 +364,6 @@ function chooseResize(dx,dy,part){
         part.rot-=((part.rot+7.5)%15 -7.5)
         part.rot|=0
       }
-      console.log(part.rot)
       transformChanged(part)
     }
   }
@@ -377,18 +377,58 @@ function chooseResize(dx,dy,part){
   let unrot = idmat.scale(1/w,1/h).translate(w/2,h/2).rotate(-part.rot).translate(-w/2-ox,-h/2-oy).translate(-ol,-ot);
   return (e) => {
     let m = unrot.transformPoint({x:e.pageX,y:e.pageY})
-    // ro.x-dx*o.w/2 = n.x-dx*n.w/2
-    // n.x+dx*n.w/2 = m.x
-    let nx=dx?(m.x+ro.x-dx*o.w/2)/2:ro.x
-    let ny=dy?(m.y+ro.y-dy*o.h/2)/2:ro.y
-    let {x,y}=cmati.transformPoint({x:nx,y:ny})
-    part.x=x
-    part.y=y // need to change both in case of rotation
-    if(dx){
-      part.w=(m.x-ro.x+dx*o.w/2)/dx
+
+    if(center.checked){
+      //if center preserving:
+      // ro.x+dx*n.w/2 = m.x
+      if(dx){
+        part.w = (m.x-ro.x)*2/dx
+      }
+      if(dy){
+        part.h = (m.y-ro.y)*2/dy
+      }
+      if(match.checked){
+        if(!dx) part.w=part.h
+        else if(!dy) part.h=part.w
+        else {
+          part.h=(part.h+part.w)/2
+          part.w=part.h
+        }
+      }
     }
-    if(dy){
-      part.h=(m.y-ro.y+dy*o.h/2)/dy
+    else{
+      // ro.x-dx*o.w/2 = n.x-dx*n.w/2
+      // n.x+dx*n.w/2 = m.x
+      if(dx){
+        part.w=(m.x-ro.x+dx*o.w/2)/dx
+      }
+      if(dy){
+        part.h=(m.y-ro.y+dy*o.h/2)/dy
+      }
+      let nx,ny
+      let delta = 0
+      if(match.checked){
+        if(!dx) part.w=part.h
+        else if(!dy) part.h=part.w
+        else {
+          delta = (part.h - part.w) / 2
+          part.h-=delta
+          part.w+=delta
+        }
+      }
+      // let nx=dx?(m.x+ro.x-dx*o.w/2)/2:ro.x
+      // let ny=dy?(m.y+ro.y-dy*o.h/2)/2:ro.y
+      nx=dx?m.x-dx*part.w/2:ro.x
+      ny=dy?m.y-dy*part.h/2:ro.y
+      if(delta){
+        // I'm ashamed to admit that I did this bit by trial and error
+        // rather than the honest way of deriving it, then bugfixing by trial and error
+        nx+=dx*delta
+        ny-=dy*delta
+      }
+      let {x,y}=cmati.transformPoint({x:nx,y:ny})
+      part.x=x
+      part.y=y // need to change both regardless of dy/dx in case of rotation
     }
     //spmat.inverse().translate((part.x-1/2)*h,(p.y-1/2)*w).rotate(part.rot).multiply(spmat);
     transformChanged(part);
@@ -413,70 +453,69 @@ document.addEventListener("pointerdown",(e)=>
   console.log(e,e.x,e.y)
 )
 document.addEventListener("keydown",(e)=>{
-    if(selected){
-      console.log(e)
-      let unhandled=false;
-      switch(e.key){
-        case "d":
-        case "ArrowRight":
-          if (snap.checked) snapNext(selected,"x",snapvalues)
-          else selected.x+=1/60
-          transformChanged(selected)
-          break;
-        case "a":
-        case "ArrowLeft":
-          if (snap.checked) snapPrev(selected,"x",snapvalues)
-          else selected.x-=1/60
-          transformChanged(selected)
-          break;
-        case "s":
-        case "ArrowDown":
-          if (snap.checked) snapNext(selected,"y",snapvalues)
-          else selected.y+=1/60
-          transformChanged(selected)
-          break;
-        case "w":
-        case "ArrowUp":
-          if(snap.checked) snapPrev(selected,"y",snapvalues)
-          else selected.y-=1/60
-          transformChanged(selected)
-          break;
-        case "q":
-          selected.rot-=15
-          transformChanged(selected)
-          break;
-        case "e":
-          selected.rot+=15
-          transformChanged(selected)
-          break;
-        case "Delete":
-          deletepart(selected)
-          break;
-        case " ":
-          drawCarefully()
-          break;
-        case "Tab":
-        case "n":
-          for(let i=0;i<parts.length;i++){
-            if(selected==parts[i]) {
-              selectPart(parts[(i+1)%parts.length])/*
-              if(i+1<parts.length) selectPart(parts[i+1])
-              else deselect()*/
-              break;
-            }
-            if(i+1==parts.length)selectPart(parts[0])
+  if(selected){
+    console.log(e)
+    let unhandled=false;
+    switch(e.key){
+      case "d":
+      case "ArrowRight":
+        if (snap.checked) snapNext(selected,"x",snapvalues)
+        else selected.x+=1/60
+        transformChanged(selected)
+        break;
+      case "a":
+      case "ArrowLeft":
+        if (snap.checked) snapPrev(selected,"x",snapvalues)
+        else selected.x-=1/60
+        transformChanged(selected)
+        break;
+      case "s":
+      case "ArrowDown":
+        if (snap.checked) snapNext(selected,"y",snapvalues)
+        else selected.y+=1/60
+        transformChanged(selected)
+        break;
+      case "w":
+      case "ArrowUp":
+        if(snap.checked) snapPrev(selected,"y",snapvalues)
+        else selected.y-=1/60
+        transformChanged(selected)
+        break;
+      case "q":
+        selected.rot-=15
+        transformChanged(selected)
+        break;
+      case "e":
+        selected.rot+=15
+        transformChanged(selected)
+        break;
+      case "Delete":
+        deletepart(selected)
+        break;
+      case " ":
+        drawCarefully()
+        break;
+      case "Tab":
+      case "n":
+        for(let i=0;i<parts.length;i++){
+          if(selected==parts[i]) {
+            selectPart(parts[(i+1)%parts.length])/*
+            if(i+1<parts.length) selectPart(parts[i+1])
+            else deselect()*/
+            break;
           }
-          break;
-        default:
-          unhandled=true
-      }
-      if(!unhandled && selected){
-        e.preventDefault()
-        // stops scrolling (arrow keys and space) and might do something about tab
-      }
+          if(i+1==parts.length)selectPart(parts[0])
+        }
+        break;
+      default:
+        unhandled=true
+    }
+    if(!unhandled && selected){
+      e.preventDefault()
+      // stops scrolling (arrow keys and space) and might do something about tab
     }
   }
-)
+})
 
 drawPartdivs(parts)
 drawFractal(10000)
