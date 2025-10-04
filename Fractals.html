@@ -3,6 +3,12 @@
 <head>
 <title>Fractals</title>
 <style>
+@media(prefers-color-scheme: dark){
+  body{
+    background-color: black;
+    filter:invert(0.9);
+  }
+}
 body,.part,#boxui{
   margin:0px;
 }
@@ -14,10 +20,21 @@ body,.part,#boxui{
   display:inline-block;
   vertical-align:top;
 }
-#sidediv{
-  text-align: right;
+@media (min-width : 800px){
+  #sidediv{
+    /*display:inline-block;*/
+    position:absolute;
+    top:0px;
+    vertical-align:top;
+    writing-mode: vertical-lr;
+    text-orientation: upright;
+    max-height: 700px;
+    left:700px;
+  }
+}
+#sidediv canvas{
   display:inline-block;
-  vertical-align:top;
+  
 }
 #bigPic{
 }
@@ -84,13 +101,22 @@ function partToMatrix(p){
 </canvas>
 <div style="margin-left:8px">
 <form name="buttons">
-<button>Save Fractal</button><br>
+<div id="sidediv">
+a<br>
+b<br>
+c<br>
+d<br>
+</div>
+<button onclick="saveImage()">Save Fractal</button><br>
+<fieldset>
+  <legend>Control configuration</legend>
 <input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons/widths</label><br>
-<input type="checkbox" id="match" name="match" checked="true"><label for="match">Match width and height (make/keep parts square when adjusted) </label><br>
-<input type="checkbox" id="center" name="center" checked="true"><label for="center">Resize around center </label>
-
+<input type="checkbox" id="match" name="match" checked="true"><label for="match">match width and height (make/keep parts square when adjusted) </label><br>
+<input type="checkbox" id="center" name="center" checked="true"><label for="center">resize around center </label>
+</fieldset>
+<!-- TODO:  -->
 <!--<fieldset>
-  <legend>Snap position</legend>
+  
   <input type="radio" >
 </fieldset>-->
 </form>
@@ -105,12 +131,6 @@ function partToMatrix(p){
 </div>
 </div>
 <div id="config">
-</div>
-<div id="sidediv">
-a<br>
-b<br>
-c<br>
-d<br>
 </div>
 <div id=partsdiv style="position:absolute;top:0;left:0;">
 </div>
@@ -341,6 +361,7 @@ document.addEventListener("pointerdown",(e)=>
 document.addEventListener("keydown",(e)=>{
     if(selected){
       console.log(e)
+      let unhandled=false;
       switch(e.key){
         case "d":
         case "ArrowRight":
@@ -384,8 +405,13 @@ document.addEventListener("keydown",(e)=>{
             }
             if(i+1==parts.length)selectPart(parts[0])
           }
-          e.preventDefault()
           break;
+        default:
+          unhandled=true
+      }
+      if(!unhandled && selected){
+        e.preventDefault()
+        // stops scrolling (arrow keys and space) and might do something about tab
       }
     }
   }
@@ -404,7 +430,47 @@ function calcDim(conts){
   })
 
 }
-selectPart(parts[0])
+function copyparts(parts){
+  return parts.map(p=>({"x":p.x,"y":p.y,"w":p.w,"h":p.h,"rot":p.rot}))
+}
+//Save/load
+let saved = JSON.parse(localStorage.getItem("parts"))
+if(saved===null) saved=[]
+function saveImage(){
+  let pts = copyparts(parts)
+  saved.push(pts)
+  localStorage.setItem("parts",JSON.stringify(saved))
+  mkSideCanvas(pts)
+}
+function mkSideCanvas(pts){// assumes pts is never mutated
+  let op=parts
+  parts=pts
+  drawCarefully()
+  let newCanvas = document.createElement("canvas")
+  newCanvas.width=100
+  newCanvas.height=100
+  sidediv.prepend(newCanvas)
+  //newCanvas.parts = pts
+  newCanvas.addEventListener("click",(e)=>{
+    parts = copyparts(pts)
+    resetParts()
+  })
+  let ctx=newCanvas.getContext("2d")
+  ctx.drawImage(bigPic, ox, oy, w, h, 0, 0, newCanvas.width, newCanvas.height)
+  parts = op
+  return newCanvas
+}
+for(let im of saved){
+  //parts=copyparts(im)
+  mkSideCanvas(im)
+}
+function resetParts(){
+  drawPartdivs(parts)
+  selectPart(parts[0])
+  drawFractal(100000)
+}
+resetParts()
+// saveImage()
 //drawBoxes()
 /*
 TODO: 
