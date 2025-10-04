@@ -100,18 +100,17 @@ function partToMatrix(p){
 <canvas id="bigPic" width=700 height=700>
 </canvas>
 <div style="margin-left:8px">
-<form name="buttons">
 <div id="sidediv">
 a<br>
 b<br>
 c<br>
 d<br>
 </div>
-<button onclick="saveImage()">Save Fractal</button><br>
+<button onclick="newpart()">Create part</button> <button onclick="deletepart(selected)">Delete part</button> <button onclick="saveImage()">Save Fractal</button><br>
 <fieldset>
   <legend>Control configuration</legend>
-<input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons/widths</label><br>
-<input type="checkbox" id="match" name="match" checked="true"><label for="match">match width and height (make/keep parts square when adjusted) </label><br>
+<input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons</label><br>
+<input type="checkbox" id="match" name="match" checked="true"><label for="match">match width and height (keep parts square)</label><br>
 <input type="checkbox" id="center" name="center" checked="true"><label for="center">resize around center </label>
 </fieldset>
 <!-- TODO:  -->
@@ -119,7 +118,6 @@ d<br>
   
   <input type="radio" >
 </fieldset>-->
-</form>
 <h2>Controls:</h2>
 <ul>
   <li>Mouse: Select, move, resize and rotate part</li>
@@ -142,7 +140,7 @@ d<br>
 let ctx = bigPic.getContext("2d")
 //ctx.fillRect(1,1,20,20)
 ctx.strokeRect(ox,oy,w,h)
-
+let MaxSearchDepth = 8
 // let p = {x:ox+w/2,y:oy+h/2}
 //let ptsz=2
 function drawFractal(n,count){
@@ -154,7 +152,7 @@ function drawFractal(n,count){
   let containers
   if(count){
     containers = []
-    for(let i=0;i<=Math.min(8,Math.log2(n));i++){
+    for(let i=0;i<=Math.min(MaxSearchDepth,Math.log2(n));i++){
       let l=[]
       for(let x=0;x<(1<<i);x++)
         l.push(new Array(1<<i).fill(0))
@@ -178,14 +176,29 @@ function drawFractal(n,count){
       if(mns[c]>p[c])mns[c]=p[c]
     }
   }
-  for(let i=0;i<n;i++){
-    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
-    ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
-    if(count){
-      let x=p.x-ox
-      let y=p.y-oy
-      if(x>=0 && x<w && y>=0 && y<h){
-        containers.map((c,i)=>c[((x<<i)/w)|0 ][((y<<i)/h)|0]+=1)
+  if(!count || containers.length<=9){
+    for(let i=0;i<n;i++){
+      p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+      ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
+      if(count){
+        let x=p.x-ox
+        let y=p.y-oy
+        if(x>=0 && x<w && y>=0 && y<h){
+          containers.map((c,i)=>c[((x<<i)/w)|0 ][((y<<i)/h)|0]+=1)
+        }
+      }
+    }
+  }
+  else{
+    for(let i=0;i<n;i++){
+      p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+      ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
+      if(count){
+        let x=p.x-ox
+        let y=p.y-oy
+        if(x>=0 && x<w && y>=0 && y<h){
+          containers.map((c,i)=>c[((x*(1<<i))/w)|0 ][((y*(1<<i))/h)|0]+=1)
+        }
       }
     }
   }
@@ -194,7 +207,7 @@ function drawFractal(n,count){
 }
 
 let f12 = new Array(13).fill(0).map((e,i)=>i/12)
-let sqrts = new Array(13).fill(0).flatMap((e,i)=>{
+let sqrts = new Array(6).fill(0).flatMap((e,i)=>{
   let rt = Math.sqrt(i)
   let a=[]
   for(let j=1; j/rt <1; j++){
@@ -203,7 +216,7 @@ let sqrts = new Array(13).fill(0).flatMap((e,i)=>{
   return a
 })
 let snapvalues=f12.concat(sqrts).sort()
-snapvalues=snapvalues.reverse().map(x=>-x).concat(snapvalues)
+snapvalues=snapvalues.map(x=>-x).reverse().concat(snapvalues)
 for(let i=0;i+1<snapvalues.length;){
   if(snapvalues[i]==snapvalues[i+1])snapvalues.splice(i,1)
   else i++
@@ -217,19 +230,55 @@ function bsearch(a,v){
     if(v<a[m])r=m
     else l=m
   }
-  return
+  return l
+}
+function snapTo(v,vs){//return the nearest element of vs to v
+  let ix = bsearch(vs,v)
+  if (ix==vs.length-1) return vs[ix]
+  else{
+    if (v < (vs[ix]+vs[ix+1])/2) return  vs[ix]
+    else return vs[ix+1]
+  }
+}
+function snapNext(o,prop,vs){
+  let v = o[prop]
+  let ix = bsearch(vs,v)
+  if (ix==0 && v<vs[ix]) o[prop]=vs[ix]
+  else if(ix+1>=vs.length) o[prop]=vs[ix]
+  else o[prop]=vs[ix+1]
+}
+function snapPrev(o,prop,vs){
+  let v = o[prop]
+  let ix = bsearch(vs,v)
+  if (vs[ix]==v && ix>0) o[prop]=vs[ix-1]
+  else o[prop]=vs[ix]
+}
+
+function deletepart(p){
+  let ix = parts.indexOf(p)
+  if(ix==-1 || !selected){
+    return
+  }
+  parts.splice(ix,1)
+  resetParts()
+}
+function newpart(p){
+  if(!p){
+    p={x:1/2,y:1/2,w:1/2,h:1/2,rot:0}
+    parts.push(p)
+  }
+  let n = document.createElement("div")
+  n.classList.add("part")
+  n.style.transform=partToMatrix(p).translate(ox,oy) // First move it into the coordinate system the matrix is expecting
+  n.addEventListener("pointerdown",e=>moveAction=selectAndMovePart(p,e))
+  p.div=n
+  partsdiv.append(n)
 }
 
 function drawPartdivs(parts){
   partsdiv.replaceChildren()
   for(let p of parts){
-    let n = document.createElement("div")
-    n.classList.add("part")
-    n.style.transform=partToMatrix(p).translate(ox,oy) // First move it into the coordinate system the matrix is expecting
-    n.addEventListener("pointerdown",e=>moveAction=selectAndMovePart(p,e))
-    p.div=n
-    partsdiv.append(n)
-
+    newpart(p)
   }
 }
 
@@ -281,8 +330,12 @@ function selectAndMovePart(p,e){
   let initey=e.pageY
   let original = {x:p.x,y:p.y}
   return (e)=>{
-    p.x=original.x+(e.pageX-initex)/w
-    p.y=original.y+(e.pageY-initey)/h
+    p.x = original.x+(e.pageX-initex)/w
+    p.y = original.y+(e.pageY-initey)/h
+    if(snap.checked){
+      p.x = snapTo(p.x,snapvalues)
+      p.y = snapTo(p.y,snapvalues)
+    }
     transformChanged(p)
   }
 }
@@ -306,7 +359,7 @@ function chooseResize(dx,dy,part){
     let cy = part.y*h+oy+ot
     return (e) => {
       part.rot = Math.atan2(e.pageX-cx,-e.pageY+cy)*180/Math.PI + 360
-      if(true){//(cliprot){
+      if(snap.checked){//(cliprot){
         part.rot-=((part.rot+7.5)%15 -7.5)
         part.rot|=0
       }
@@ -348,8 +401,9 @@ function pointerEnd(e){
   drawCarefully()
   moveAction = ()=>{}
 }
+let carefulDrawCount = 100000
 function drawCarefully(){
-  conts = drawFractal(100000,true)
+  conts = drawFractal(carefulDrawCount,true)
   console.log(calcDim(conts))
 }
 document.addEventListener("pointerup",pointerEnd)
@@ -365,22 +419,26 @@ document.addEventListener("keydown",(e)=>{
       switch(e.key){
         case "d":
         case "ArrowRight":
-          selected.x+=1/60
+          if (snap.checked) snapNext(selected,"x",snapvalues)
+          else selected.x+=1/60
           transformChanged(selected)
           break;
         case "a":
         case "ArrowLeft":
-          selected.x-=1/60
+          if (snap.checked) snapPrev(selected,"x",snapvalues)
+          else selected.x-=1/60
           transformChanged(selected)
           break;
         case "s":
         case "ArrowDown":
-          selected.y+=1/60
+          if (snap.checked) snapNext(selected,"y",snapvalues)
+          else selected.y+=1/60
           transformChanged(selected)
           break;
         case "w":
         case "ArrowUp":
-          selected.y-=1/60
+          if(snap.checked) snapPrev(selected,"y",snapvalues)
+          else selected.y-=1/60
           transformChanged(selected)
           break;
         case "q":
@@ -390,6 +448,9 @@ document.addEventListener("keydown",(e)=>{
         case "e":
           selected.rot+=15
           transformChanged(selected)
+          break;
+        case "Delete":
+          deletepart(selected)
           break;
         case " ":
           drawCarefully()
