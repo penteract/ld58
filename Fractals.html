@@ -3,8 +3,8 @@
 <head>
 <title>Fractals</title>
 <style>
-body{
-  margin:8px;
+body,.part,#boxui{
+  margin:0px;
 }
 #maindiv{
   width:700px;
@@ -23,9 +23,9 @@ body{
   transform-origin:top left;
 }
 .part,#boxui{
+  touch-action: none;
   position:absolute;
   top:0;left:0;
-  margin:8px;/*align with body, in particular with the SVG*/
 }
 svg{
   pointer-events: none;
@@ -33,6 +33,8 @@ svg{
 svg circle{
   pointer-events: all;
   fill:#40a040;
+  r:5px;
+  touch-action: none;
 }
 </style>
 <script>
@@ -60,7 +62,7 @@ let w=500
 let ox=100
 let oy=100
 let idmat = new DOMMatrix() 
-let spmat = new DOMMatrix().translate(-ox-w/2,-oy-h/2) // convert from client state to 
+let spmat = new DOMMatrix().translate(-ox-w/2,-oy-h/2) // convert from canvas coordinates to logical ones (500x500)
 function partToMatrix(p){
   // return new DOMMatrix().translate(-ox-w/2,-oy-h/2) .translate(ox+(p.x-p.w/2)*h,oy+(p.y-p.h/2)*w).scale(p.w,p.h).rotate(p.rot).translate(ox+w/2,oy+h/2)
   //
@@ -161,7 +163,7 @@ function transformChanged(part){
     }
   }
   part.div.style.transform = mat.translate(ox,oy)
-  drawFractal(100000)
+  drawFractal(10000)
 }
 /*
 function drawBoxes(){
@@ -169,55 +171,98 @@ function drawBoxes(){
 }*/
 let selected
 function selectAndMovePart(p,e){
-  let initex=e.x
-  let initey=e.y
+  selected=p
+  let initex=e.pageX
+  let initey=e.pageY
   let original = {x:p.x,y:p.y}
   boxui.replaceChildren(drawBox(p))
   transformChanged(p)
   return (e)=>{
-    p.x=original.x+(e.x-initex)/w
-    p.y=original.y+(e.y-initey)/h
+    p.x=original.x+(e.pageX-initex)/w
+    p.y=original.y+(e.pageY-initey)/h
     transformChanged(p)
   }
 }
+let ot = bigPic.offsetTop // for adjusting the mouse 
+let ol = bigPic.offsetLeft
 function chooseResize(dx,dy,part){
   // set the moveAction while the mouse is held over handles dx,dy
-  let ot = bigPic.offsetTop
-  let ol = bigPic.offsetLeft
   if(!(dx||dy)){
     let cx = part.x*w+ox+ol
     let cy = part.y*h+oy+ot
     return (e) => {
-      part.rot = Math.atan2(e.x-cx,-e.y+cy)*180/Math.PI + 360
-      //if(cliprot)
-      part.rot-=((part.rot+7.5)%15 -7.5)
-      part.rot|=0
+      part.rot = Math.atan2(e.pageX-cx,-e.pageY+cy)*180/Math.PI + 360
+      if(true){//(cliprot){
+        part.rot-=((part.rot+7.5)%15 -7.5)
+        part.rot|=0
+      }
       console.log(part.rot)
       transformChanged(part)
     }
   }
-  return (e)=>{
+  //TODO: sort this out !!!
+  let o = {w:part.w,h:part.h}
+  //transform original into rotated coordinates
+  let cmat = idmat.translate(1/2,1/2).rotate(-part.rot).translate(-1/2,-1/2)
+  let cmati = cmat.inverse()
+  let ro = cmat.transformPoint({x:part.x,y:part.y})
 
+  // idmat.rotate(part.rot)
+  // Transform m into unit-square (rotated) coordinates
+  //.multiply(spmat)
+  let unrot = idmat.scale(1/w,1/h).translate(w/2,h/2).rotate(-part.rot).translate(-w/2-ox,-h/2-oy).translate(-ol,-ot);
+
+  return (e) => {
+    // console.log(e,unrot.transformPoint({x:e.pageX,y:e.pageY})
+    let rt = unrot.transformPoint({x:e.pageX,y:e.pageY})
+    let nx=dx?(rt.x+ro.x-dx*o.w/2)/2:ro.x
+    let ny=dy?(rt.y+ro.y-dy*o.h/2)/2:ro.y
+    let {x,y}=cmati.transformPoint({x:nx,y:ny})
+    part.x=x
+    part.y=y // need to change both
+    if(dx){
+      // o.x-dx*o.w/2 = n.x-dx*n.w/2
+      // n.x+dx*n.w/2 = rt.x
+      
+      
+      part.w=(rt.x-ro.x+dx*o.w/2)/dx
+      //part.w = 
+
+      console.log(ro.x-dx*o.w/2, nx-dx*part.w/2)
+    }
+    if(dy){
+      part.h=(rt.y-ro.y+dy*o.h/2)/dy
+    }
+    //spmat.inverse().translate((part.x-1/2)*h,(p.y-1/2)*w).rotate(part.rot).multiply(spmat);
+    transformChanged(part);
   }
 }
 
 document.addEventListener("pointermove",(e)=> {moveAction(e)})
-document.addEventListener("pointerup",(e)=>
-  moveAction = ()=>{}
-)
-
-document.addEventListener("pointercancel",(e)=>
-  moveAction = ()=>{}
-)
+function pointerEnd(e){
+    drawFractal(100000)
+    moveAction = ()=>{}
+}
+document.addEventListener("pointerup",pointerEnd)
+document.addEventListener("pointercancel",pointerEnd)
 
 document.addEventListener("pointerdown",(e)=>
   console.log(e,e.x,e.y)
 )
 
 drawPartdivs(parts)
+drawFractal(10000)
+
+function logparts(){
+  console.log("[" + parts.map(p=> "{"+["x","y","w","h","rot"].map(c=>c+":"+p[c]).join(",")+"}" ).join(",")+"]")
+}
 
 //drawBoxes()
+/*
+TODO: 
+arrow keys
 
+*/
 </script>
 </body>
 </html>

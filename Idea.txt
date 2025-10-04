@@ -1,10 +1,14 @@
 fractal collecting:
 Draw fractals.
 collect specific fractals or
+
 collect fractals with specific properties:
 order 3 symmetry
 space filling (with minimal overlap)
 Particular dimenesion
+
+order 3 symmetry, space filling, with holes in
+// [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.5833333333333334,w:0.5,h:0.5,rot:0}]
 
 
 
