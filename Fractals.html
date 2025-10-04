@@ -207,6 +207,15 @@ function drawFractal(n,count){
   return containers
 }
 
+//snapping values
+const epsilon = 10**(-5)
+function remdups(vs){ // mutating
+  for(let i=0;i+1<vs.length;){
+    if(vs[i]>vs[i+1]-epsilon)vs.splice(i,1)
+    else i++
+  }
+  return vs
+}
 let f12 = new Array(13).fill(0).map((e,i)=>i/12)
 let sqrts = new Array(6).fill(0).flatMap((e,i)=>{
   let rt = Math.sqrt(i)
@@ -217,11 +226,11 @@ let sqrts = new Array(6).fill(0).flatMap((e,i)=>{
   return a
 })
 let snapvalues=f12.concat(sqrts).sort()
-snapvalues=snapvalues.map(x=>-x).reverse().concat(snapvalues)
-for(let i=0;i+1<snapvalues.length;){
-  if(snapvalues[i]==snapvalues[i+1])snapvalues.splice(i,1)
-  else i++
-}
+remdups(snapvalues)
+let sizesnaps = snapvalues.map(x=>-x).reverse().concat(snapvalues)
+let possnaps = remdups(snapvalues.map(x=>1-x).concat(snapvalues).sort())
+
+
 
 function bsearch(a,v){
   let l=0
@@ -334,8 +343,8 @@ function selectAndMovePart(p,e){
     p.x = original.x+(e.pageX-initex)/w
     p.y = original.y+(e.pageY-initey)/h
     if(snap.checked){
-      p.x = snapTo(p.x,snapvalues)
-      p.y = snapTo(p.y,snapvalues)
+      p.x = snapTo(p.x,possnaps)
+      p.y = snapTo(p.y,possnaps)
     }
     transformChanged(p)
   }
@@ -359,7 +368,7 @@ function chooseResize(dx,dy,part){
     let cx = part.x*w+ox+ol
     let cy = part.y*h+oy+ot
     return (e) => {
-      part.rot = Math.atan2(e.pageX-cx,-e.pageY+cy)*180/Math.PI + 360
+      part.rot = Math.atan2((e.pageY-cy)*Math.sign(part.h),(e.pageX-cx)*Math.sign(part.h) )*180/Math.PI + 360+90
       if(snap.checked){//(cliprot){
         part.rot-=((part.rot+7.5)%15 -7.5)
         part.rot|=0
@@ -387,35 +396,35 @@ function chooseResize(dx,dy,part){
       if(dy){
         part.h = (m.y-ro.y)*2/dy
       }
-      if(match.checked){
-        if(!dx) part.w=part.h
-        else if(!dy) part.h=part.w
-        else {
-          part.h=(part.h+part.w)/2
-          part.w=part.h
-        }
-      }
     }
     else{
+      // if not center preserving
       // ro.x-dx*o.w/2 = n.x-dx*n.w/2
-      // n.x+dx*n.w/2 = m.x
+      // n.x+dx*n.w/2 = m.x (not always true when match.checked)
       if(dx){
         part.w=(m.x-ro.x+dx*o.w/2)/dx
       }
       if(dy){
         part.h=(m.y-ro.y+dy*o.h/2)/dy
       }
-      let nx,ny
-      let delta = 0
-      if(match.checked){
-        if(!dx) part.w=part.h
-        else if(!dy) part.h=part.w
-        else {
-          delta = (part.h - part.w) / 2
-          part.h-=delta
-          part.w+=delta
-        }
+    }
+    if(match.checked){
+      if(!dx) part.w=Math.abs(part.h)*Math.sign(o.w)
+      else if(!dy) part.h=Math.abs(part.w)*Math.sign(o.h)
+      else {
+        let delta = (part.h*Math.sign(o.h) - part.w*Math.sign(o.w)) / 2 // preserve agreement of sign
+        part.h-=delta*Math.sign(o.h)
+        part.w+=delta*Math.sign(o.w)
       }
+    }
+    if(snap.checked){
+      if(dx || match.checked) part.w = snapTo(part.w,sizesnaps)
+      if(dy || match.checked) part.h = snapTo(part.h,sizesnaps)
+    }
+    if(!center.checked){
+      let nx = dx?ro.x+dx*(part.w-o.w)/2:ro.x
+      let ny = dy?ro.y+dy*(part.h-o.h)/2:ro.y
+      /*
       // let nx=dx?(m.x+ro.x-dx*o.w/2)/2:ro.x
       // let ny=dy?(m.y+ro.y-dy*o.h/2)/2:ro.y
       nx=dx?m.x-dx*part.w/2:ro.x
@@ -425,7 +434,7 @@ function chooseResize(dx,dy,part){
         // rather than the honest way of deriving it, then bugfixing by trial and error
         nx+=dx*delta
         ny-=dy*delta
-      }
+      }*/
       let {x,y}=cmati.transformPoint({x:nx,y:ny})
       part.x=x
       part.y=y // need to change both regardless of dy/dx in case of rotation
@@ -438,7 +447,7 @@ function chooseResize(dx,dy,part){
 document.addEventListener("pointermove",(e)=> {moveAction(e)})
 let conts
 function pointerEnd(e){
-  drawCarefully()
+  if(e.target.parentElement!=sidediv) drawCarefully()
   moveAction = ()=>{}
 }
 let carefulDrawCount = 100000
@@ -459,25 +468,25 @@ document.addEventListener("keydown",(e)=>{
     switch(e.key){
       case "d":
       case "ArrowRight":
-        if (snap.checked) snapNext(selected,"x",snapvalues)
+        if (snap.checked) snapNext(selected,"x",possnaps)
         else selected.x+=1/60
         transformChanged(selected)
         break;
       case "a":
       case "ArrowLeft":
-        if (snap.checked) snapPrev(selected,"x",snapvalues)
+        if (snap.checked) snapPrev(selected,"x",possnaps)
         else selected.x-=1/60
         transformChanged(selected)
         break;
       case "s":
       case "ArrowDown":
-        if (snap.checked) snapNext(selected,"y",snapvalues)
+        if (snap.checked) snapNext(selected,"y",possnaps)
         else selected.y+=1/60
         transformChanged(selected)
         break;
       case "w":
       case "ArrowUp":
-        if(snap.checked) snapPrev(selected,"y",snapvalues)
+        if(snap.checked) snapPrev(selected,"y",possnaps)
         else selected.y-=1/60
         transformChanged(selected)
         break;
@@ -545,7 +554,7 @@ function saveImage(){
 function mkSideCanvas(pts){// assumes pts is never mutated
   let op=parts
   parts=pts
-  drawCarefully()
+  drawFractal(carefulDrawCount/4)
   let newCanvas = document.createElement("canvas")
   newCanvas.width=100
   newCanvas.height=100
@@ -567,7 +576,7 @@ for(let im of saved){
 function resetParts(){
   drawPartdivs(parts)
   selectPart(parts[0])
-  drawFractal(100000)
+  drawFractal(10000)
 }
 resetParts()
 // saveImage()
