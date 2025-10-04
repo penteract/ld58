@@ -1,0 +1,11 @@
+fractal collecting:
+Draw fractals.
+collect specific fractals or
+collect fractals with specific properties:
+order 3 symmetry
+space filling (with minimal overlap)
+Particular dimenesion
+
+
+
+
