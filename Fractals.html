@@ -175,8 +175,8 @@ function partToMatrix(p){
 Distance: <span id="distance" style="display:inline-block;width:60px;">?</span>
 <button id="nextChallengeButton" onclick="nextChallenge()">Next Challenge</button>
 <br>
-<label for="hints">Hints</label><input type="checkbox" id="hints" name="hints" checked="true">: <span id="hinttext"></span>
-
+Hints: <span id="hinttext"></span>
+<span id="nextHintBut"><br><button onclick="addHint()">More Hints</button></div>
 <br>
 <button onclick="newpart()">Create part</button> <button onclick="deletepart(selected)">Delete part</button> <button onclick="saveImage()">Save Fractal</button>
 <br>
@@ -216,6 +216,9 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="tr
 </svg>
 <script>
 "use strict";
+
+let hints = {checked:true}
+
 let ctx = bigPic.getContext("2d")
 //ctx.fillRect(1,1,20,20)
 ctx.strokeRect(ox,oy,w,h)
@@ -724,47 +727,83 @@ let challenges = [
   {
     target : [{x:0.5,y:0.33333333333333337,w:0.5,h:0.5,rot:360},{x:0.33333333333333337,y:0.5833333333333334,w:0.5,h:0.5,rot:0},{x:0.7071067811865475,y:0.6666666666666667,w:0.5,h:0.5,rot:0}]
     /* [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]*/
-  , init : [{x:0.25,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "Move the parts around using the mouse or arrow keys"
+  , init : [{x:0.25,y:0.25,w:0.5,h:0.5,rot:360},{x:0.2916666666666667,y:0.7083333333333334,w:0.5,h:0.5,rot:0},{x:0.7083333333333334,y:0.7083333333333334,w:0.5,h:0.5,rot:0}]
+  /*[{x:0.25,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]*/
+  , hints : ["Move the parts around using the mouse or arrow keys"]
   , name : "Movement"
   },
   {
     target : [{x:0.2916666666666667,y:0.5833333333333334,w:0.5,h:0.5,rot:0},{x:0.625,y:0.4166666666666667,w:0.5,h:0.5,rot:0}]
   , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "It's just a line. Deleting a part using the Del key or the button below might be helpful."
+  , hints : ["It's just a line. Deleting a part using the Del key or the button below might be helpful."]
   , name : "Delete"
   },
   {
     target : [{x:0.75,y:0.8333333333333334,w:0.25,h:0.25,rot:360},{x:0.6666666666666667,y:0.33333333333333337,w:0.6666666666666666,h:0.6666666666666666,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
   , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "Try making parts bigger/smaller using the side/corner handles."
+  , hints : ["Try making parts bigger/smaller using the side/corner handles."]
   , name : "Resize"
   },
   {
     target : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.625,w:0.25,h:0.25,rot:0}]
   , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "Looks like something's missing. Create a new part using the buttons below and modify it appropriately."
+  , hints : ["Looks like something's missing. Create a new part using the buttons below and modify it appropriately."]
   , name : "Create"
   },
   {
     target : [{x:0.25,y:0.75,w:0.5,h:0.5,rot:90},{x:0.75,y:0.75,w:0.5,h:0.5,rot:360},{x:0.75,y:0.25,w:0.5,h:0.5,rot:270}]
   , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "Parts can be rotated using the top handle or Q/E on the keyboard. Try rotating the bottom left and top parts by 90 degrees each."
+  , hints : ["Parts can be rotated using the top handle or Q/E on the keyboard. Try rotating the bottom left and top parts by 90 degrees each."]
   , name : "Rotation"
   },
-  
   {
-    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
-  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "How might you divide a square into 4 smaller squares?"
-  , name : "Square" 
+    target:[{x:0.6666666666666666,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:585},{x:0.3333333333333333,y:0.5,w:-0.7071067811865475,h:-0.7071067811865475,rot:585}]
+  , init : [{x:0.625,y:0.625,w:0.7071067811865475,h:0.7071067811865475,rot:360},{x:0.375,y:0.625,w:0.7071067811865475,h:0.7071067811865475,rot:360}]
+  , hints : ["These parts each have half the area of the full square, allowing for some interesting patterns with solid areas.",
+           "Could you fit a smaller copy of the target shape into itself?",
+           "Try rotating both parts by 45 degrees."]
+  , name : "Twin Dragon" 
   },
   {
+    target : [{x:0.6666666666666667,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:405},{x:0.33333333333333337,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:315}]
+  , init : [{x:0.625,y:0.625,w:0.7071067811865475,h:0.7071067811865475,rot:360},{x:0.375,y:0.625,w:0.7071067811865475,h:0.7071067811865475,rot:360}]
+  , hints : ["Can you see smaller copies of the target shape within it?",
+            "Try rotating the parts by 45 degrees in different directions."]
+  , name : "Lévy Dragon" 
+  },
+
+  {
     target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
   , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "These parts each have half the area of the whole square, allowing for some interesting patterns. \n\n"+
-           "Rotate each by 45 degrees in different directions"
-  , name : "Levy Dragon" 
+  , hints : ["It's just a solid square",
+    "How might you divide a square into 4 smaller squares?",
+    "try putting a 1/4 sized square in each corner"
+  ]
+  , name : "Solid Square" 
+  , thresholdFactor : 10
+  },
+  {
+    target :[{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.75,w:0.5,h:0.5,rot:540}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hints : [
+    "This time a triangle",
+    "Like with a square, you can make a triangle out of 4 smaller ones",
+    "One of the 4 copies needs to be upsidedown"
+  ]
+  , name : "Solid Triangle" 
+  , thresholdFactor : 10
+  },
+  {
+    target :[{x:0.6666666666666666,y:0.4166666666666667,w:0.7071067811865475,h:0.7071067811865475,rot:450},{x:0.375,y:0.5416666666666666,w:0.7071067811865475,h:0.7071067811865475,rot:450}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hints : [
+    "This could be done just like the square",
+    "But there's a way to use fewer part: this rectangle has the same aspect ratio as a piece of A4 paper",
+    "If you cut a piece of A4 paper in half, you get 2 A5 pieces with the same aspect ratio as the original",
+    "The smaller pieces need to be rotated 90 degrees to look the same"
+  ]
+  , name : "Solid Rectangle"
+  , thresholdFactor : 10
   },
   /*
   {
@@ -813,15 +852,28 @@ function setTarget(parts){
   ctx2.fillStyle="#F00"
   targetset = drawFractalAt(parts,ctx2,carefulDrawCount,true)
 }
+let curHints=[]
+let numHintsShown=0
+function setHints(hints){
+  hinttext.innerHTML=""
+  curHints=hints
+  numHintsShown=0
+  if(hints.length>0)addHint()
+}
+function addHint(){
+  hinttext.innerHTML+="<BR>"+curHints[numHintsShown++]
+  if (numHintsShown<curHints.length){nextHintBut.classList.remove("hidden")}
+  else{nextHintBut.classList.add("hidden")}
+}
 function startChallenge(c){
   nextChallengeButton.classList.add("hidden")
-  let {target,init,hint} = c
+  let {target,init,hints} = c
   setTarget(target)
   // targetset = drawFractalAt(target,ctx2,carefulDrawCount,true)
   parts = copyparts(init)
   resetParts()
   drawCarefully()
-  if(hints.checked) hinttext.innerHTML=hint
+  setHints(hints)
 }
 let challengeCount= +localStorage.getItem("challengeCount") // completed challenges
 let challengeNum = challengeCount
