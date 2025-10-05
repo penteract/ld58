@@ -211,6 +211,7 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
   <li>Delete: Remove selected part</li>
 </ul>
 </div>
+<button id="resetProgress" onclick="resetProgress()">Reset All Challenge Progress</button> (not the same as Reset Challenge above, which resets current challenge)
 </div>
 <div id="config">
 </div>
@@ -755,7 +756,7 @@ let challenges = [
   {
     target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
   , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.5,w:0.5,h:0.5,rot:0}]
-  , hints : ["A square can be formed out of 4 smaller squares, one in each corner. Create a new part using the button below and put it in the gap.",
+  , hints : ["A square can be formed out of 4 smaller squares, one in each corner.",
       "Reset the challenge if you're stuck. This can be solved by moving the part in the middle into the top left corner"
   ]
   , name : "Solid square" 
@@ -765,7 +766,7 @@ let challenges = [
     target : [{x:0.6666666666666666,y:0.375,w:0.5,h:0.5,rot:360},{x:0.3333333333333333,y:0.625,w:0.5,h:0.5,rot:0},{x:0.625,y:0.6666666666666666,w:0.5,h:0.5,rot:0},{x:0.375,y:0.3333333333333333,w:0.5,h:0.5,rot:0}]
   , init :[{x:0.625,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.625,w:0.5,h:0.5,rot:0},{x:0.2916666666666667,y:0.4583333333333333,w:0.5,h:0.5,rot:0}]
   , hints : ["Here's a smaller square. You don't need to rotate or resize any of the parts for this challenge.",
-      "Reset the challenge if you're stuck. This can be solved by just moving the parts. Try and use each part to get a different corner of the square in the right places"
+      "Reset the challenge if you're stuck. This can be solved without doing anything except moving the parts. Try and use each part to get a different corner of the square in the right places"
   ]
   , name : "smaller square" 
   , thresholdFactor : 10
@@ -860,8 +861,15 @@ let challenges = [
     "If you've got something that covers some of the solution, but not all of it, look for the largest red piece which could be covered by a copy of the whole thing, then create a part which makes something that covers that",
     "Reset the challenge if you're stuck. This one can be solved by creating a part, making it a bit smaller, and putting it in the middle"
   ]
-  , name : "Sierpinski Plus"
+  , name : "Sierpiński Plus"
   },
+  {
+    target : [{x:0.5,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.8333333333333334,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.5,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
+  , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hints : ["You'll need to make a few new pieces for this one"]
+  , name : "Sierpiński carpet"
+  },
+  
   {
     target :[{x:0.6666666666666666,y:0.4166666666666667,w:0.7071067811865475,h:0.7071067811865475,rot:450},{x:0.375,y:0.5416666666666666,w:0.7071067811865475,h:0.7071067811865475,rot:450}]
   , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
@@ -893,6 +901,14 @@ let challenges = [
   , name : 
   },
   */
+  /*
+  {
+    target : 
+  , init : 
+  , hints : 
+  , name : 
+  },
+  */
 ]
 
 function checkAnswer(r){
@@ -900,17 +916,21 @@ function checkAnswer(r){
     let d = setDist(targetset,r)
     distance.innerText=d.toFixed(2)
     distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
-    if (d<=1 && challengeNum==challengeCount){
-      challengeCount+=1
-      localStorage.setItem("challengeCount",challengeCount)
-      if(challengeCount==challenges.length){
+    if (d<=1 ){
+      if(challengeNum==challengeCount){
+        challengeCount+=1
+        localStorage.setItem("challengeCount",challengeCount)
+      }
+      if(challengeNum+1==challenges.length){
         alert("Congratulations, you've completed all the challenges, enjoy playing freestyle")
         console.log("TODO: hide challenge related ui")
+        saveImage()
         refPic.classList.add("hidden")
       }
       else if(confirm("Congratualtions, Challenge complete (distance "+d.toFixed(3)+").\n Save this fractal and continue to the next challenge?")){
+        challengeNum+=1
         saveImage()
-        nextChallenge()
+        resetChallenge()
       }
       else{
         nextChallengeButton.classList.remove("hidden")
@@ -936,8 +956,10 @@ function setHints(hints){
 }
 function showSol(){
   parts = copyparts(targetParts)
-  challengeCount++
+  //challengeCount=challengeNum+1
   nextChallengeButton.classList.remove("hidden")
+  showSolution.classList.add("hidden")
+
   resetParts()
 }
 function addHint(){
@@ -971,9 +993,20 @@ function nextChallenge(){
     resetChallenge()
     //startChallenge(challenges[])
   }
+  else{
+    alert("You're at the end of the challenges, enjoy making whatever fractals you want")
+    console.log("TODO: hide challenge related ui")
+    refPic.classList.add("hidden")
+  }
 }
 function resetChallenge(keephints){
   startChallenge(challenges[challengeNum],keephints)
+}
+function resetProgress(){
+  challengeCount=0
+  challengeNum=0
+  resetChallenge()
+  localStorage.setItem("challengeCount",challengeCount)
 }
 </script>
 </body>
