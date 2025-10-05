@@ -3,11 +3,18 @@
 <head>
 <title>Fractals</title>
 <style>
-@media(prefers-color-scheme: dark){
-  body{
+/*@media(prefers-color-scheme: dark){ (the dark version just looks better) */
+button{
+  margin-bottom: 2px;
+  margin-bottom: 2px;
+}
+button,input{
+  filter:invert()
+}
+body{
     background-color: black;
-    filter:invert(0.9);
-  }
+    /*filter:invert(0.9);*/
+    color: white;
 }
 body,.part,#boxui{
   margin:0px;
@@ -28,19 +35,27 @@ body,.part,#boxui{
     vertical-align:top;
     writing-mode: vertical-lr;
     text-orientation: upright;
-    max-height: 700px;
+    max-height: 699px;
     left:700px;
   }
 }
 #sidediv canvas{
   display:inline-block;
-  
+  border: 5px solid #0000;
+  &:hover{
+    border-color:green
+  }
 }
 #bigPic{
+  display: block;
+}
+#refPic{
+  display: block;
+  margin-bottom:-700px;
 }
 .part{
   width:500px;height:500px;
-  background:#0002;
+  background:#FFF2;
   transform-origin:top left;
 }
 .part,#boxui{
@@ -56,6 +71,21 @@ svg circle{
   fill:#40a040;
   r:5px;
   touch-action: none;
+}
+.nowhere{
+  color:red;
+}
+.bad{
+  color:red;
+}
+.near{
+  color:orange;
+}
+.good{
+  color:yellow
+}
+.exellent{
+  color:#40e040
 }
 </style>
 <script>
@@ -97,16 +127,20 @@ function partToMatrix(p){
 </head>
 <body>
 <div id="maindiv">
-<canvas id="bigPic" width=700 height=700>
-</canvas>
+<canvas id="refPic" width=700 height=700></canvas>
+<canvas id="bigPic" width=700 height=700></canvas>
 <div style="margin-left:8px">
+<button onclick="prevChallenge()">Previous Challenge</button>
+<button onclick="nextChallenge()">Next Challenge</button>
+<button onclick="resetChallenge()">Reset Challenge</button>
+Distance: <span id="distance" style="display:inline-block;width:60px;">?</span>
+<input type="checkbox" id="hints" name="hints" checked="true"><label for="hints">Hints:</label><span id="hint"></span>
+
+<br>
+<button onclick="newpart()">Create part</button> <button onclick="deletepart(selected)">Delete part</button> <button onclick="saveImage()">Save Fractal</button>
+<br>
 <div id="sidediv">
-a<br>
-b<br>
-c<br>
-d<br>
 </div>
-<button onclick="newpart()">Create part</button> <button onclick="deletepart(selected)">Delete part</button> <button onclick="saveImage()">Save Fractal</button><br>
 <fieldset>
   <legend>Control configuration</legend>
 <input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons</label><br>
@@ -144,8 +178,7 @@ ctx.strokeRect(ox,oy,w,h)
 let MaxSearchDepth = 8
 // let p = {x:ox+w/2,y:oy+h/2}
 //let ptsz=2
-function drawFractal(n,count){
-  bigPic.width|=0
+function drawFractalAt(parts,ctx,n,count){
   let mats = parts.map(partToMatrix)
   let ptsz = Math.sqrt(w*h/n)
   //ptsz*ptsz*n=w*h
@@ -177,34 +210,33 @@ function drawFractal(n,count){
       if(mns[c]>p[c])mns[c]=p[c]
     }
   }
-  if(!count || containers.length<=9){
-    for(let i=0;i<n;i++){
-      p = mats[(Math.random()*mats.length)|0].transformPoint(p)
-      ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
-      if(count){
-        let x=p.x-ox
-        let y=p.y-oy
-        if(x>=0 && x<w && y>=0 && y<h){
-          containers.map((c,i)=>c[((x<<i)/w)|0 ][((y<<i)/h)|0]+=1)
-        }
-      }
-    }
-  }
-  else{
-    for(let i=0;i<n;i++){
-      p = mats[(Math.random()*mats.length)|0].transformPoint(p)
-      ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
-      if(count){
-        let x=p.x-ox
-        let y=p.y-oy
-        if(x>=0 && x<w && y>=0 && y<h){
-          containers.map((c,i)=>c[((x*(1<<i))/w)|0 ][((y*(1<<i))/h)|0]+=1)
-        }
+  for(let i=0;i<n;i++){
+    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+    ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
+    if(count){
+      let x=p.x-ox
+      let y=p.y-oy
+      if(x>=0 && x<w && y>=0 && y<h){
+        containers.map((c,i)=>c[((x*(1<<i))/w)|0 ][((y*(1<<i))/h)|0]+=1)
       }
     }
   }
   ctx.strokeRect(ox,oy,w,h)
   return containers
+}
+let targetset
+function drawFractal(n,count){
+  bigPic.width|=0
+  ctx.fillStyle="#FFF"
+  ctx.strokeStyle="#FFF"
+  
+  let r = drawFractalAt(parts,ctx,n,count)
+  if(count && targetset){
+    let d = setDist(targetset,r)
+    distance.innerText=(d-d%0.01)
+    distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
+  }
+  return r
 }
 
 //snapping values
@@ -551,10 +583,10 @@ function saveImage(){
   localStorage.setItem("parts",JSON.stringify(saved))
   mkSideCanvas(pts)
 }
-function mkSideCanvas(pts){// assumes pts is never mutated
+function mkSideCanvas(pts,quick){// assumes pts is never mutated
   let op=parts
   parts=pts
-  drawFractal(carefulDrawCount/4)
+  drawFractal(quick?carefulDrawCount/saved.length:carefulDrawCount)
   let newCanvas = document.createElement("canvas")
   newCanvas.width=100
   newCanvas.height=100
@@ -571,7 +603,7 @@ function mkSideCanvas(pts){// assumes pts is never mutated
 }
 for(let im of saved){
   //parts=copyparts(im)
-  mkSideCanvas(im)
+  mkSideCanvas(im,true)
 }
 function resetParts(){
   drawPartdivs(parts)
@@ -583,9 +615,73 @@ resetParts()
 //drawBoxes()
 /*
 TODO: 
-arrow keys
-add snapping to rational square roots
+Set comparison
+Better fractal dimension calculation
+puzzles / achievements
 */
+function setDist(r,s){
+  //TODO: match lengths
+  return asymmSetDist(r,s)/r[0][0][0]+asymmSetDist(s,r)/s[0][0][0] // Max would also work here
+}
+function asymmSetDist(r,s){
+  //find the mean square distance to s over points in r
+  //for each point, test samebox; then repeatedly (test 8 surrounding boxes; go up a level)
+  if(s[0][0][0]<1) return Infinity
+  let cache = {}
+  function distFrom(d,x,y){//log distance from point (depth,x,y) to s
+    let r = cache[[d,x,y]]
+    if(r===undefined){ // work it out
+      //if(s[d][x][y]) r=1
+      for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+        if (s[d][x+dx]?.[y+dy]){
+          r=1
+          break
+        }
+      }
+      if(!r){
+        r=1+distFrom(d-1,x>>1,y>>1)
+      }
+      cache[[d,x,y]]=r
+    }
+    return r
+  }
+  function costFrom(d,x,y){
+    let n = r[d][x][y]
+    if(n==0) return 0
+    if(d==r.length-1){
+      return (n*((1<<(2*distFrom(d,x,y)-2))-1) )
+    }
+    let tot = 0
+    for(let dx=0;dx<=1;dx++)for(let dy=0;dy<=1;dy++){
+      tot += costFrom(d+1,2*x+dx,2*y+dy)
+      if(!(dx||dy)){
+        let v = cache[[d,x,y]]
+        if(v && v>1) return n*((1<<(2*(v+r.length-1-d-1))-1) )
+      }
+    }
+    return tot
+  }
+  return costFrom(0,0,0)
+}
+
+let s = drawFractal(carefulDrawCount,true) 
+setDist(s,s)
+let ctx2 = refPic.getContext("2d")
+ctx2.strokeStyle="#FFF"
+ctx2.fillStyle="#F00"
+ctx2.strokeRect(ox,oy,w,h)
+
+let challenges = [
+  {
+    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , init : [{x:0.25,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "Move the top left part to the top right corner using the mouse or the arrow keys"
+  }
+  ,
+]
+
+
+targetset = drawFractalAt(saved[saved.length-1],ctx2,carefulDrawCount,true)
 </script>
 </body>
 </html>
