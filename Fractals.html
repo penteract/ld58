@@ -6,9 +6,17 @@
 /*@media(prefers-color-scheme: dark){ (the dark version just looks better) */
 button{
   margin-bottom: 2px;
-  margin-bottom: 2px;
+  margin-top: 2px;
 }
-button,input{
+button{
+  color:white;
+  background: black;
+  box-shadow: 0 0 2px  white;
+  &:hover{
+    box-shadow: 0 0 2px  grey;
+  }
+}
+input{
   filter:invert()
 }
 body{
@@ -63,29 +71,60 @@ body,.part,#boxui{
   position:absolute;
   top:0;left:0;
 }
+svg,circle,canvas,.part{ /*https://stackoverflow.com/a/12906840/1779797*/
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
 svg{
   pointer-events: none;
 }
-svg circle{
+circle{
   pointer-events: all;
   fill:#40a040;
   r:5px;
   touch-action: none;
 }
+@media (pointer:coarse) {
+  circle{
+    r:20px;
+  }
+}
+.hidden{
+  display: none !important ;
+}
 .nowhere{
   color:red;
 }
 .bad{
-  color:red;
-}
-.near{
   color:orange;
 }
+.near{
+  color:yellow;
+}
 .good{
-  color:yellow
+  color:yellowgreen;
 }
 .exellent{
   color:#40e040
+}
+@keyframes flashing {
+  0% {
+    box-shadow: 0 0 3px #000;
+  }
+  50% {
+    box-shadow: 0 0 10px #FFF;
+  }
+  100% {
+    box-shadow: 0 0 3px #000;
+  }
+}
+#nextChallengeButton{
+  filter:none;
+  animation: flashing 1s infinite;
 }
 </style>
 <script>
@@ -130,11 +169,13 @@ function partToMatrix(p){
 <canvas id="refPic" width=700 height=700></canvas>
 <canvas id="bigPic" width=700 height=700></canvas>
 <div style="margin-left:8px">
-<button onclick="prevChallenge()">Previous Challenge</button>
-<button onclick="nextChallenge()">Next Challenge</button>
+  <!--
+<button onclick="prevChallenge()">Previous Challenge</button> -->
 <button onclick="resetChallenge()">Reset Challenge</button>
 Distance: <span id="distance" style="display:inline-block;width:60px;">?</span>
-<input type="checkbox" id="hints" name="hints" checked="true"><label for="hints">Hints:</label><span id="hint"></span>
+<button id="nextChallengeButton" onclick="nextChallenge()">Next Challenge</button>
+<br>
+<label for="hints">Hints</label><input type="checkbox" id="hints" name="hints" checked="true">: <span id="hinttext"></span>
 
 <br>
 <button onclick="newpart()">Create part</button> <button onclick="deletepart(selected)">Delete part</button> <button onclick="saveImage()">Save Fractal</button>
@@ -143,7 +184,10 @@ Distance: <span id="distance" style="display:inline-block;width:60px;">?</span>
 </div>
 <fieldset>
   <legend>Control configuration</legend>
-<input type="checkbox" id="snap" name="snap" checked="true"><label for="snap">snap positons</label><br>
+snap: <input type="checkbox" id="snappositions" name="snappositions" checked="true"><label for="snappositions">positions</label>
+<input type="checkbox" id="snapsizes" name="snapsizes" checked="true"><label for="snapsizes">sizes</label>
+<input type="checkbox" id="snaprotations" name="snaprotations" checked="true"><label for="snaprotations">rotation</label>
+<br>
 <input type="checkbox" id="match" name="match" checked="true"><label for="match">match width and height (keep parts square)</label><br>
 <input type="checkbox" id="center" name="center" checked="true"><label for="center">resize around center </label>
 </fieldset>
@@ -179,6 +223,7 @@ let MaxSearchDepth = 8
 // let p = {x:ox+w/2,y:oy+h/2}
 //let ptsz=2
 function drawFractalAt(parts,ctx,n,count){
+  if (parts.length<1) return;
   let mats = parts.map(partToMatrix)
   let ptsz = Math.sqrt(w*h/n)
   //ptsz*ptsz*n=w*h
@@ -231,11 +276,6 @@ function drawFractal(n,count){
   ctx.strokeStyle="#FFF"
   
   let r = drawFractalAt(parts,ctx,n,count)
-  if(count && targetset){
-    let d = setDist(targetset,r)
-    distance.innerText=(d-d%0.01)
-    distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
-  }
   return r
 }
 
@@ -257,10 +297,11 @@ let sqrts = new Array(6).fill(0).flatMap((e,i)=>{
   }
   return a
 })
+let f24 = new Array(25).fill(0).map((e,i)=>i/24)
 let snapvalues=f12.concat(sqrts).sort()
 remdups(snapvalues)
 let sizesnaps = snapvalues.map(x=>-x).reverse().concat(snapvalues)
-let possnaps = remdups(snapvalues.map(x=>1-x).concat(snapvalues).sort())
+let possnaps = f24 // remdups(f24.map(x=>1-x).concat(f24).sort())
 
 
 
@@ -374,7 +415,7 @@ function selectAndMovePart(p,e){
   return (e)=>{
     p.x = original.x+(e.pageX-initex)/w
     p.y = original.y+(e.pageY-initey)/h
-    if(snap.checked){
+    if(snappositions.checked){
       p.x = snapTo(p.x,possnaps)
       p.y = snapTo(p.y,possnaps)
     }
@@ -382,7 +423,7 @@ function selectAndMovePart(p,e){
   }
 }
 function selectPart(p){
-  if(selected!==p){
+  if(p && selected!==p){
     selected=p
     boxui.replaceChildren(drawBox(p))
     transformChanged(p,true)
@@ -401,7 +442,7 @@ function chooseResize(dx,dy,part){
     let cy = part.y*h+oy+ot
     return (e) => {
       part.rot = Math.atan2((e.pageY-cy)*Math.sign(part.h),(e.pageX-cx)*Math.sign(part.h) )*180/Math.PI + 360+90
-      if(snap.checked){//(cliprot){
+      if(snaprotations.checked){//(cliprot){
         part.rot-=((part.rot+7.5)%15 -7.5)
         part.rot|=0
       }
@@ -449,7 +490,7 @@ function chooseResize(dx,dy,part){
         part.w+=delta*Math.sign(o.w)
       }
     }
-    if(snap.checked){
+    if(snapsizes.checked){
       if(dx || match.checked) part.w = snapTo(part.w,sizesnaps)
       if(dy || match.checked) part.h = snapTo(part.h,sizesnaps)
     }
@@ -484,8 +525,10 @@ function pointerEnd(e){
 }
 let carefulDrawCount = 100000
 function drawCarefully(){
+  clearTimeout(keyboardTimeout)
   conts = drawFractal(carefulDrawCount,true)
-  console.log(calcDim(conts))
+  checkAnswer(conts)
+  //console.log(calcDim(conts))
 }
 document.addEventListener("pointerup",pointerEnd)
 document.addEventListener("pointercancel",pointerEnd)
@@ -493,6 +536,7 @@ document.addEventListener("pointercancel",pointerEnd)
 document.addEventListener("pointerdown",(e)=>
   console.log(e,e.x,e.y)
 )
+let keyboardTimeout
 document.addEventListener("keydown",(e)=>{
   if(selected){
     console.log(e)
@@ -500,25 +544,25 @@ document.addEventListener("keydown",(e)=>{
     switch(e.key){
       case "d":
       case "ArrowRight":
-        if (snap.checked) snapNext(selected,"x",possnaps)
+        if (snappositions.checked) snapNext(selected,"x",possnaps)
         else selected.x+=1/60
         transformChanged(selected)
         break;
       case "a":
       case "ArrowLeft":
-        if (snap.checked) snapPrev(selected,"x",possnaps)
+        if (snappositions.checked) snapPrev(selected,"x",possnaps)
         else selected.x-=1/60
         transformChanged(selected)
         break;
       case "s":
       case "ArrowDown":
-        if (snap.checked) snapNext(selected,"y",possnaps)
+        if (snappositions.checked) snapNext(selected,"y",possnaps)
         else selected.y+=1/60
         transformChanged(selected)
         break;
       case "w":
       case "ArrowUp":
-        if(snap.checked) snapPrev(selected,"y",possnaps)
+        if(snappositions.checked) snapPrev(selected,"y",possnaps)
         else selected.y-=1/60
         transformChanged(selected)
         break;
@@ -553,13 +597,18 @@ document.addEventListener("keydown",(e)=>{
     }
     if(!unhandled && selected){
       e.preventDefault()
+      if(e.key!=" "){
+        clearTimeout(keyboardTimeout)
+        keyboardTimeout = setTimeout(drawCarefully
+          ,500)
+      }
       // stops scrolling (arrow keys and space) and might do something about tab
     }
   }
 })
 
-drawPartdivs(parts)
-drawFractal(10000)
+//drawPartdivs(parts)
+//drawFractal(10000)
 
 function logparts(){
   console.log("[" + parts.map(p=> "{"+["x","y","w","h","rot"].map(c=>c+":"+p[c]).join(",")+"}" ).join(",")+"]")
@@ -610,7 +659,7 @@ function resetParts(){
   selectPart(parts[0])
   drawFractal(10000)
 }
-resetParts()
+//resetParts()
 // saveImage()
 //drawBoxes()
 /*
@@ -664,8 +713,8 @@ function asymmSetDist(r,s){
   return costFrom(0,0,0)
 }
 
-let s = drawFractal(carefulDrawCount,true) 
-setDist(s,s)
+// let s = drawFractal(carefulDrawCount,true) 
+// setDist(s,s)
 let ctx2 = refPic.getContext("2d")
 ctx2.strokeStyle="#FFF"
 ctx2.fillStyle="#F00"
@@ -673,15 +722,121 @@ ctx2.strokeRect(ox,oy,w,h)
 
 let challenges = [
   {
-    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+    target : [{x:0.5,y:0.33333333333333337,w:0.5,h:0.5,rot:360},{x:0.33333333333333337,y:0.5833333333333334,w:0.5,h:0.5,rot:0},{x:0.7071067811865475,y:0.6666666666666667,w:0.5,h:0.5,rot:0}]
+    /* [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]*/
   , init : [{x:0.25,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hint : "Move the top left part to the top right corner using the mouse or the arrow keys"
-  }
-  ,
+  , hint : "Move the parts around using the mouse or arrow keys"
+  , name : "Movement"
+  },
+  {
+    target : [{x:0.2916666666666667,y:0.5833333333333334,w:0.5,h:0.5,rot:0},{x:0.625,y:0.4166666666666667,w:0.5,h:0.5,rot:0}]
+  , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "It's just a line. Deleting a part using the Del key or the button below might be helpful."
+  , name : "Delete"
+  },
+  {
+    target : [{x:0.75,y:0.8333333333333334,w:0.25,h:0.25,rot:360},{x:0.6666666666666667,y:0.33333333333333337,w:0.6666666666666666,h:0.6666666666666666,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "Try making parts bigger/smaller using the side/corner handles."
+  , name : "Resize"
+  },
+  {
+    target : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.625,w:0.25,h:0.25,rot:0}]
+  , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "Looks like something's missing. Create a new part using the buttons below and modify it appropriately."
+  , name : "Create"
+  },
+  {
+    target : [{x:0.25,y:0.75,w:0.5,h:0.5,rot:90},{x:0.75,y:0.75,w:0.5,h:0.5,rot:360},{x:0.75,y:0.25,w:0.5,h:0.5,rot:270}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "Parts can be rotated using the top handle or Q/E on the keyboard. Try rotating the bottom left and top parts by 90 degrees each."
+  , name : "Rotation"
+  },
+  
+  {
+    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "How might you divide a square into 4 smaller squares?"
+  , name : "Square" 
+  },
+  {
+    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hint : "These parts each have half the area of the whole square, allowing for some interesting patterns. \n\n"+
+           "Rotate each by 45 degrees in different directions"
+  , name : "Levy Dragon" 
+  },
+  /*
+  {
+    target : 
+  , init : 
+  , hint : 
+  , name : 
+  },
+  */
+  /*
+  {
+    target : 
+  , init : 
+  , hint : 
+  , name : 
+  },
+  */
 ]
 
-
-targetset = drawFractalAt(saved[saved.length-1],ctx2,carefulDrawCount,true)
+function checkAnswer(r){
+  if(targetset){
+    let d = setDist(targetset,r)
+    distance.innerText=d.toFixed(2)
+    distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
+    if (d<=1 && challengeNum==challengeCount){
+      challengeCount+=1
+      localStorage.setItem("challengeCount",challengeCount)
+      if(challengeCount==challenges.length){
+        alert("Congratulations, you've completed all the challenges, enjoy playing freestyle")
+        console.log("TODO: hide challenge related ui")
+        refPic.classList.add("hidden")
+      }
+      else if(confirm("Congratualtions, Challenge complete (distance "+d.toFixed(3)+").\n Save this fractal and continue to the next challenge?")){
+        saveImage()
+        nextChallenge()
+      }
+      else{
+        nextChallengeButton.classList.remove("hidden")
+      }
+    }
+  }
+}
+function setTarget(parts){
+  refPic.classList.remove("hidden")
+  refPic.width|=0
+  ctx2.fillStyle="#F00"
+  targetset = drawFractalAt(parts,ctx2,carefulDrawCount,true)
+}
+function startChallenge(c){
+  nextChallengeButton.classList.add("hidden")
+  let {target,init,hint} = c
+  setTarget(target)
+  // targetset = drawFractalAt(target,ctx2,carefulDrawCount,true)
+  parts = copyparts(init)
+  resetParts()
+  drawCarefully()
+  if(hints.checked) hinttext.innerHTML=hint
+}
+let challengeCount= +localStorage.getItem("challengeCount") // completed challenges
+let challengeNum = challengeCount
+if(challengeNum<challenges.length) startChallenge(challenges[challengeNum])
+else{resetParts()}
+function nextChallenge(){
+  if(challengeNum<challenges.length-1){
+    ++challengeNum
+    resetChallenge()
+    //startChallenge(challenges[])
+  }
+}
+function resetChallenge(){
+  startChallenge(challenges[challengeNum])
+}
 </script>
 </body>
 </html>
