@@ -176,7 +176,7 @@ function partToMatrix(p){
   <!--
 <button onclick="prevChallenge()">Previous Challenge</button> -->
 <button onclick="resetChallenge(true)">Reset Challenge</button>
-Distance: <span id="distance" style="display:inline-block;width:60px;">?</span>
+How Far from a solution: <span id="distance" style="display:inline-block;width:60px;">?</span>
 <button id="nextChallengeButton" onclick="nextChallenge()">Next Challenge</button>
 <br>
 Hints: <span id="hinttext"></span>
@@ -541,7 +541,7 @@ let carefulDrawCount = 100000
 function drawCarefully(){
   clearTimeout(keyboardTimeout)
   conts = drawFractal(carefulDrawCount,true)
-  checkAnswer(conts)
+  if(challengeCount<=challengeNum) checkAnswer(conts)
   //console.log(calcDim(conts))
 }
 document.addEventListener("pointerup",pointerEnd)
@@ -913,14 +913,12 @@ let challenges = [
 
 function checkAnswer(r){
   if(targetset){
-    let d = setDist(targetset,r)
+    let d = setDist(targetset,r)*thresholdFactorg
     distance.innerText=d.toFixed(2)
     distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
-    if (d<=1 ){
-      if(challengeNum==challengeCount){
-        challengeCount+=1
-        localStorage.setItem("challengeCount",challengeCount)
-      }
+    if (d<=1 && challengeNum==challengeCount){
+      challengeCount+=1
+      localStorage.setItem("challengeCount",challengeCount)
       if(challengeNum+1==challenges.length){
         alert("Congratulations, you've completed all the challenges, enjoy playing freestyle")
         console.log("TODO: hide challenge related ui")
@@ -956,10 +954,9 @@ function setHints(hints){
 }
 function showSol(){
   parts = copyparts(targetParts)
-  //challengeCount=challengeNum+1
+  challengeCount=challengeNum+1
   nextChallengeButton.classList.remove("hidden")
   showSolution.classList.add("hidden")
-
   resetParts()
 }
 function addHint(){
@@ -973,9 +970,11 @@ function addHint(){
     showSolution.classList.remove("hidden")
   }
 }
+let thresholdFactorg=1
 function startChallenge(c,keephints){
-  nextChallengeButton.classList.add("hidden")
-  let {target,init,hints} = c
+  if(challengeCount<=challengeNum) nextChallengeButton.classList.add("hidden")
+  let {target,init,hints,thresholdFactor} = c
+  thresholdFactorg=thresholdFactor??1
   setTarget(target)
   // targetset = drawFractalAt(target,ctx2,carefulDrawCount,true)
   parts = copyparts(init)
