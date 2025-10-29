@@ -227,6 +227,8 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
 <li>q/e: Rotate selected left/right</li>
 <li>Space: redraw with detail</li>
 <li>Delete: Remove selected part</li>
+<li>Ctrl+z: Undo</li>
+<li>Ctrl+y or Ctrl+Shift+z: Redo</li>
 </ul>
 <h2 >Strategy</h2>
 <p>Try to work out how the red shape could be made out of copies of itself (e.g. a square can be made by putting 4 smaller squares together).</p>
@@ -407,7 +409,13 @@ function mksvgel(tag){
   return document.createElementNS("http://www.w3.org/2000/svg",tag)
 }
 
+
+
 // UI
+let selected
+let hist = [[JSON.stringify(copyparts(parts)), parts.indexOf(selected)]]
+let histIx = 0
+
 let moveAction=()=>{}
 function drawBox(part){
   let box = mksvgel("g")
@@ -449,7 +457,6 @@ function transformChanged(part,noRedrawFractal){
 function drawBoxes(){
   parts.map(part=>boxui.append(drawBox(part)))
 }*/
-let selected
 function selectAndMovePart(p,e){
   selectPart(p)
   let initex=e.pageX
@@ -568,6 +575,8 @@ function pointerEnd(e){
 }
 let carefulDrawCount = 100000
 function drawCarefully(){
+  let jparts = JSON.stringify(copyparts(parts))
+  if(jparts!=hist[histIx][0]) hist.splice(++histIx, 0, [jparts,parts.indexOf(selected)])
   clearTimeout(keyboardTimeout)
   conts = drawFractal(carefulDrawCount,true)
   checkAnswer(conts)
@@ -581,9 +590,33 @@ document.addEventListener("pointerdown",(e)=>
 )
 let keyboardTimeout
 document.addEventListener("keydown",(e)=>{
+  let unhandled=undefined;
+  switch(e.key){
+    case "z":
+      if(!e.shiftKey){
+        if (e.ctrlKey && histIx>0){
+          let oldlen = parts.length
+          let oldIx = hist[histIx][1]
+          parts = JSON.parse(hist[--histIx][0])
+          let newIx = parts.length==oldlen && oldIx!=-1  ? oldIx : hist[histIx][1]
+          resetParts()
+          if(newIx!=-1) selectPart(parts[newIx])
+          unhandled=false;
+        }
+        break;
+      }
+    case "Z":
+    case "y": // Ctrl+y or Ctrl+Shift+z to redo
+      if(e.ctrlKey && histIx+1<hist.length){
+          parts = JSON.parse(hist[++histIx][0])
+          resetParts()
+          if(hist[histIx][1]!=-1) selectPart(parts[hist[histIx][1]])
+          unhandled=false;
+      }
+  }
+
   if(selected){
     console.log(e)
-    let unhandled=false;
     switch(e.key){
       case "d":
       case "ArrowRight":
@@ -636,7 +669,7 @@ document.addEventListener("keydown",(e)=>{
         }
         break;
       default:
-        unhandled=true
+        if(unhandled!==false) unhandled=true
     }
     if(!unhandled && selected){
       e.preventDefault()
