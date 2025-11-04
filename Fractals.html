@@ -130,6 +130,29 @@ circle.rot{
   filter:none;
   animation: flashing 1s infinite;
 }
+#outeralert,#outerLevelSelect{
+  top:0px;
+  position:fixed;
+  text-align:center;
+  height:100%;
+  width:100%;
+  transform:scale(200%);
+  pointer-events: none; /* don't block mouse events on the background since keyboard events aren't blocked either*/
+}
+
+#alertdiv,#levelSelect{
+  pointer-events: all;
+  top:50%;
+  transform: translateY(-50%);
+  display:inline-block;
+  padding:10px;
+  max-width:50%;
+  position:relative;
+
+  background: blue;
+  color: white;
+}
+
 </style>
 <script>
 "use strict";
@@ -244,13 +267,22 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
 </div>
 <button id="resetProgress" onclick="resetProgress()">Reset All Challenge Progress</button> (not the same as Reset Challenge above, which resets current challenge)
 </div>
-<div id="config">
-</div>
 <div id=partsdiv style="position:absolute;top:0;left:0;">
 </div>
 <svg id="boxui" width="700" height="700" viewBox="0 0 700 700">
   <circle cx="100" cy="100" r="20" fill="red"></circ>
 </svg>
+<div id="outerLevelSelect" class="hidden">
+  <div id="levelSelect">
+  </div>
+</div>
+<div id="outeralert" class="hidden">
+  <div id="alertdiv">
+    <div id="alertmsg"></div>
+    <button id="cancelBut" onclick="cont(false)">Stay on this level</button>
+    <button id="okbut" onclick="cont(true)">Continue</button>
+  </div>
+</div>
 <script>
 "use strict";
 
@@ -410,6 +442,14 @@ function mksvgel(tag){
 }
 
 
+function hide(x){x.classList.add("hidden")}
+function unhide(x){x.classList.remove("hidden")}
+let cont = undefined // Shouldn't be able to click on continue button while it's hidden
+function askContinue(msg, k){
+  unhide(outeralert)
+  alertmsg.innerHTML = msg
+  cont = (arg) => {k(arg); hide(outeralert)}
+}
 
 // UI
 let selected
@@ -899,7 +939,7 @@ let challenges = [
   {
     target : [{x:0.8333333333333334,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:-0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360}]
     //[{x:0.75,y:0.8333333333333334,w:0.25,h:0.25,rot:360},{x:0.6666666666666667,y:0.33333333333333337,w:0.6666666666666666,h:0.6666666666666666,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
-  , init : [{x:0.75,y:0.75,w:0.5,h:0.5,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:-0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.25,w:0.5,h:0.5,rot:360}]
+  , init : [{x:0.75,y:0.75,w:0.5,h:0.5,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.25,w:0.5,h:0.5,rot:360}]
   // [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
   , hints : ["Try making parts bigger/smaller using the side/corner handles (green circles).",
     "Reset the challenge if you're stuck. This one can be solved by making one of the parts bigger and three of them smaller."
@@ -987,13 +1027,18 @@ function checkAnswer(r){
         saveImage()
         refPic.classList.add("hidden")
       }
-      else if(confirm("Congratualtions, Challenge complete (distance "+d.toFixed(3)+").\n Save this fractal and continue to the next challenge?")){
-        challengeNum+=1
-        saveImage()
-        resetChallenge()
-      }
       else{
-        nextChallengeButton.classList.remove("hidden")
+        askContinue("Congratualtions, Challenge complete (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?",
+          function (contin){
+            if (contin){
+              challengeNum+=1
+              saveImage()
+              resetChallenge()
+            }
+            else{
+              nextChallengeButton.classList.remove("hidden")
+            }
+          })
       }
     }
   }
