@@ -2,158 +2,7 @@
 <html>
 <head>
 <title>Fractal Collector</title>
-<style>
-/*@media(prefers-color-scheme: dark){ (the dark version just looks better) */
-button{
-  margin-bottom: 2px;
-  margin-top: 2px;
-}
-button{
-  font-size: large;
-  color:white;
-  background: black;
-  box-shadow: 0 0 2px  white;
-  &:hover{
-    box-shadow: 0 0 2px  grey;
-  }
-}
-input{
-  filter:invert()
-}
-body{
-    background-color: black;
-    /*filter:invert(0.9);*/
-    color: white;
-}
-body,.part,#boxui{
-  margin:0px;
-}
-#maindiv{
-  width:700px;
-  display:inline-block;
-}
-#config{
-  display:inline-block;
-  vertical-align:top;
-}
-@media (min-width : 800px){
-  #sidediv{
-    /*display:inline-block;*/
-    position:absolute;
-    top:0px;
-    vertical-align:top;
-    writing-mode: vertical-lr;
-    text-orientation: upright;
-    max-height: 699px;
-    left:700px;
-  }
-}
-#sidediv canvas{
-  display:inline-block;
-  border: 5px solid #0000;
-  &:hover{
-    border-color:green
-  }
-}
-#bigPic{
-  display: block;
-}
-#refPic{
-  display: block;
-  margin-bottom:-700px;
-}
-.part{
-  width:500px;height:500px;
-  background:#eee4;
-  transform-origin:top left;
-}
-.part,#boxui{
-  touch-action: none;
-  position:absolute;
-  top:0;left:0;
-}
-svg,circle,canvas,.part{ /*https://stackoverflow.com/a/12906840/1779797*/
-    user-drag: none;
-    -webkit-user-drag: none;
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-}
-svg{
-  pointer-events: none;
-}
-circle{
-  pointer-events: all;
-  fill:#40a040;
-  r:8px;
-  touch-action: none;
-}
-circle.rot{
-  fill:#5050f0;
-}
-@media (pointer:coarse) {
-  circle{
-    r:20px;
-  }
-}
-.hidden{
-  display: none !important ;
-}
-.nowhere{
-  color:red;
-}
-.bad{
-  color:orange;
-}
-.near{
-  color:yellow;
-}
-.good{
-  color:yellowgreen;
-}
-.exellent{
-  color:#40e040
-}
-@keyframes flashing {
-  0% {
-    box-shadow: 0 0 3px #000;
-  }
-  50% {
-    box-shadow: 0 0 10px #FFF;
-  }
-  100% {
-    box-shadow: 0 0 3px #000;
-  }
-}
-#nextChallengeButton{
-  filter:none;
-  animation: flashing 1s infinite;
-}
-#outeralert,#outerLevelSelect{
-  top:0px;
-  position:fixed;
-  text-align:center;
-  height:100%;
-  width:100%;
-  transform:scale(200%);
-  pointer-events: none; /* don't block mouse events on the background since keyboard events aren't blocked either*/
-}
-
-#alertdiv,#levelSelect{
-  pointer-events: all;
-  top:50%;
-  transform: translateY(-50%);
-  display:inline-block;
-  padding:10px;
-  max-width:50%;
-  position:relative;
-
-  background: blue;
-  color: white;
-}
-
-</style>
+<link rel="stylesheet" type="text/css" href="Fractals.css">
 </head>
 <body>
 <div id="maindiv">
@@ -236,8 +85,9 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
 <svg id="boxui" width="700" height="700" viewBox="0 0 700 700">
   <circle cx="100" cy="100" r="20" fill="red"></circ>
 </svg>
-<div id="outerLevelSelect" class="hidden">
-  <div id="levelSelect">
+<div id="outerLevelSelect"  ><!--class="hidden"-->
+  <div id="levelSelectdiv">
+  <div id="levelSelectgrid" > </div>
   </div>
 </div>
 <div id="outeralert" class="hidden">
@@ -247,6 +97,12 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
     <button id="okbut" onclick="cont(true)">Continue</button>
   </div>
 </div>
+<script src="constants.js"></script>
+<script src="Drawing.js"></script>
+<script src="Snapping.js"></script>
+<script src="SetCompare.js"></script>
+<script src="levelData.js"> </script>
 <script src="Fractals.js"> </script>
+
 </body>
 </html>
