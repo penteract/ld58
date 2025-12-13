@@ -3,13 +3,17 @@ Draw fractals.
 collect specific fractals or
 
 collect fractals with specific properties:
-order 3 symmetry
+order 3 symmetry (but not order 6)
 space filling (with minimal overlap)
 Particular dimenesion
+Includes a square
 
 order 3 symmetry, space filling, with holes in
 // [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.5833333333333334,w:0.5,h:0.5,rot:0}]
 
+UI options:
+snap rotation/position/square vs rect
+Add solid bits (make pythagoras tree)
 
 
 
