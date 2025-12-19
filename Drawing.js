@@ -68,3 +68,15 @@ function drawFractal(n,count){
   let r = drawFractalAt(parts,ctx,n,count)
   return r
 }
+function mkSmallCanvas(pts,n,ww,hh){
+  let op=parts
+  parts=pts
+  drawFractal(n)
+  let newCanvas = document.createElement("canvas")
+  newCanvas.width=ww
+  newCanvas.height=hh
+  let ctx=newCanvas.getContext("2d")
+  ctx.drawImage(bigPic, ox, oy, w, h, 0, 0, newCanvas.width, newCanvas.height)
+  parts = op
+  return newCanvas
+}

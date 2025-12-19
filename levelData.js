@@ -1,3 +1,5 @@
+"use strict";
+
 let challenges = [
   {
     target : [{x:0.5,y:0.33333333333333337,w:0.5,h:0.5,rot:360},{x:0.33333333333333337,y:0.5833333333333334,w:0.5,h:0.5,rot:0},{x:0.7071067811865475,y:0.6666666666666667,w:0.5,h:0.5,rot:0}]
@@ -7,7 +9,7 @@ let challenges = [
   , hints : ["Move the parts around using the mouse or arrow keys",
     "Reset the challenge if you're stuck. For this one, you only need to move the grey squares around which you can do by dragging the middle of them"
   ]
-  , name : "Controls: Movement"
+  , name : "Controls: Move"
   },
   {
     target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
@@ -33,7 +35,7 @@ let challenges = [
   , hints : ["Parts can be rotated using the top handle (the blue circle which appears above a part when you click on it) or Q/E on the keyboard.",
       "Reset the challenge if you're stuck. Rotate the bottom left part by 90 degrees clockwise and"+
       " the top right part by 90 degrees clockwise."]
-  , name : "Controls: Rotation"
+  , name : "Controls: Rotate"
   },
   {
     target :[{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.75,w:0.5,h:0.5,rot:540}]
@@ -155,36 +157,6 @@ let challenges = [
   ]
   , name : "Fern"
   },
-
-  {
-    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
-  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hints : ["A square again. Create a new part using the button below and put it in the gap.",
-      "Reset the challenge if you're stuck. This can be solved by creating a new part and moving it into the top left corner"
-  ]
-  , name : "Controls: Create2"
-  , thresholdFactor : 10
-  },
-
-  {
-    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
-  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hints : ["A square again. Create a new part using the button below and put it in the gap.",
-      "Reset the challenge if you're stuck. This can be solved by creating a new part and moving it into the top left corner"
-  ]
-  , name : "Controls: Create3"
-  , thresholdFactor : 10
-  },
-
-  {
-    target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:630},{x:0.25,y:0.75,w:0.5,h:0.5,rot:450},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
-  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
-  , hints : ["A square again. Create a new part using the button below and put it in the gap.",
-      "Reset the challenge if you're stuck. This can be solved by creating a new part and moving it into the top left corner"
-  ]
-  , name : "Controls: Create4"
-  , thresholdFactor : 10
-  },
   /*
   {
     target : 
@@ -204,54 +176,150 @@ let challenges = [
 ]
 
 let dependencies = {
-  "Controls: Movement" : [] ,
-  "Solid square" : ["Controls: Movement"] ,
+  "Controls: Move" : [] ,
+  "Solid square" : ["Controls: Move"] ,
   "Repositioning" : ["Solid square"] ,
-  "Controls: Rotation" : ["Controls: Movement"] ,
-  "Polygons" : ["Controls: Movement", "Controls: Rotation"] ,
-  "Dragons" : ["Controls: Movement", "Controls: Rotation"] ,
-  "Controls: Delete" : ["Controls: Movement", "Controls: Rotation"] ,
-  "Controls: Resize" : ["Controls: Movement", "Controls: Rotation"] ,
+  "Controls: Rotate" : ["Controls: Move"] ,
+  "Polygons" : ["Controls: Move", "Controls: Rotate"] ,
+  "Dragons" : ["Controls: Move", "Controls: Rotate"] ,
+  "Controls: Delete" : ["Controls: Move", "Controls: Rotate"] ,
+  "Controls: Resize" : ["Controls: Move", "Controls: Rotate"] ,
   "Controls: Create" : ["Solid square"] ,
-  "Solid Rectangle" : ["Polygons", "Controls: Create, Controls: Delete"] ,
-  "Sierpiński Plus" : ["Controls: Movement", "Controls: Resize"] ,
-  "Sierpiński carpet" : ["Controls: Movement", "Controls: Create", "Controls: Resize"] ,
-  "Fern" : ["Controls: Movement", "Controls: Create", "Controls: Delete", "Controls: Resize"] ,
+  "Sierpiński Plus" : ["Controls: Move", "Controls: Resize"] ,
+  "Sierpiński carpet" : ["Controls: Move", "Controls: Create", "Controls: Resize"] ,
+  "Solid Rectangle" : ["Polygons", "Controls: Create", "Controls: Delete"] ,
+  "Fern" : ["Controls: Move", "Controls: Create", "Controls: Delete", "Controls: Resize","Sierpiński carpet"] ,
 }
 
-function drawLevel(lvl,place){
-  let [x,y] = lvl.position;
-  let s = '<div style="grid-column:'+x+';grid-row:'+y+';">'+lvl.name+"<canvas width=100 height=100 /> </div>"
-  let n = (new DOMParser).parseFromString (s,"text/html").body.children[0]
-  ctx = n.children[0].getContext("2d")
-
-  drawFractal((carefulDrawCount*2)/(challenges.length+1))
-  place.appendChild(n)
+function mkArrow(dir){
+  let arr = document.createElementNS("http://www.w3.org/2000/svg","svg")
+  arr.classList.add(dir+"Arrow")
+  let r=0
+  let x=0
+  let y=0
+  let w=20
+  let h=100
+  for(let i=0; dir!="left" && i-1<(dir=="right") ; i++ ){
+    r-=90
+    ;[w,h] = [h,w]
+    ;[x,y]=[y,100-(x+h)]
+  }
+  arr.innerHTML = '<path transform="rotate('+r+' 50 50)" fill="white" d="M0,50 L10,0 L10,25 L20,25 L20,75 L10,75 L 10,100 Z">'
+  arr.setAttribute("viewBox",[x,y,w,h].join(" "))
+  //<rect fill="white" x="120" width="100" height="100" rx="15"> </rect>\
+  //<rect fill="black" x="0" y="0" width="100" height="100"> </rect>'
+  return arr
 }
+function levelBox(name,position,arrow){
+  let [x,y] = position;
+  let div = document.createElement("div")
+  div.style = 'grid-column:'+x+';grid-row:'+y+';'
+  div.classList.add("lvlbox")
+  div.classList.add("locked")
+  div.append(name)
+  if(arrow)div.append(arrow)
+  return div
+}
+function singleLvlBox(lvl,position,container,arrow){
+  console.log(position)
 
+  let div = levelBox(lvl.name,position,arrow)
+  div.append(document.createElement("br"))
+  div.append(mkSmallCanvas(lvl.target,10000,100,100))
+  div.append(document.createElement("br"))
+  let sp = document.createElement("span")
+  sp.innerHTML="incomplete"
+  div.append(sp)
+  lvl.box=div
+  container.append(div)
+  occupied[position]=true
+  return div
+}
+function lvlGroupBox(grp,position,container,arrow){
+  console.log(position)
+  let [[x1,x2],[y1,y2]] = position
+  let h = document.createElement("h2")
+  h.append(grp)
+  let div = levelBox(h,[x1+"/"+x2,y1+"/"+y2],arrow)
+  div.classList.add("lvlgroup")
+  let i=x1
+  let j=y1
+  for(let x of inGroup[grp]){
+    //console.log(i,j)
+    let lvldiv= singleLvlBox(x,[i-x1+1,j-y1+1],div)
+    lvldiv.classList.remove("locked")
+    if (i+1>=x2){j+=1;i=x1} else{i+=1}
+  }
+  for(let i=x1;i<x2;i++){
+    for(let j=y1;j<y2;j++){
+      occupied[[i,j]]=true
+    }
+  }
+  container.append(div)
+  return div
+}
+let inGroup = {}
+for(let x in dependencies){
+  inGroup[x] = []
+}
+for(let x of challenges){
+  if (x.group){
+    inGroup[x.group].push(x)
+  }
+  else if(x.name in inGroup){
+    inGroup[x.name].push(x)
+    if(inGroup[x.name].length!=1) throw "name conflict"
+  }
+  else{
+    throw ("level without specified dependencies: "+x.name)
+  }
+}
+let positions = {}
+let occupied = {}
 let i=0
-s=""
-for(let x of challenges){
-  if (x.name.startsWith("Controls: ")){
+for(let grp in dependencies){
+  console.log(grp)
+  let itms = inGroup[grp]
+  let deps = dependencies[grp]
+  if (grp.startsWith("Controls: ")){
     i++
-    x.position = [3,i]
-    s+='<div style="grid-column:'+3+';grid-row:'+i+';">'+x.name+"<canvas width=100 height=100 /> </div>"
+    deps.box=singleLvlBox(itms[0],[3,i],levelSelectgrid,deps.length && mkArrow("down"))
+    positions[grp] = [[3,4],[i,i+1]]
+    // s+='<div style="grid-column:'+3+';grid-row:'+i+';">'+x.name+"<canvas width=100 height=100 /> </div>"
     //console.log(levelSelect.innerHTML)
   }
+  else{
+    let y = Math.max(... dependencies[grp].map(d => positions[d][1][1]-1 ))
+    function getXs(ps){
+      return [ps[0],ps[1]-1]
+    }
+    let x = 2
+    //let x = Math.max(dependencies[grp].flatMap(d => [positions[d][0][0],positions[d][0][1]-1]).map(x=>[Math.abs(x-3),x]))[1]
+    //x += Math.sign(x-3) // Move one step in the right direction
+    while(occupied[[x,y]]){
+      x=(x<3?6:5)-x
+    }
+    if(itms.length<=1){
+      deps.box=singleLvlBox(itms[0],[x,y],levelSelectgrid,mkArrow(x<3?"left":"right"))
+      positions[grp] = [[x,x+1],[y,y+1]]
+    }
+    else{
+      let w=1
+      if(Math.abs(x-3)<=1){ w=2; if(x<3) x-=1 }
+      positions[grp] = [[x,x+w],[y,y+(itms.length+w-1)/w|0]]
+      deps.box=lvlGroupBox(grp,positions[grp],levelSelectgrid,mkArrow(x<3?"left":"right"))
+    }
+  }
+  //let positions[grp]
+  //let [[x1,x2],[y1,y2]] = positions[grp]
+  //if(x.position)drawLevel(x,levelSelectgrid)
 }
-s=""
-for(let x of challenges){
-  if (x.name.startsWith("Controls: ")){
-    i++
-    x.position = [3,i]
-    s+='<div style="grid-column:'+3+';grid-row:'+i+';">'+x.name+"<canvas width=100 height=100 /> </div>"
-    //console.log(levelSelect.innerHTML)
+function calcDeps(){
+  for(let grp in dependencies){
+    let deps = dependencies[grp]
+    if(!deps.some(x=>!challenges[x].status)){
+      deps.box.classList.remove("locked")
+    }
   }
 }
-s+='<div style="grid-column:1/3;grid-row:1/3;grid-template-columns: subgrid;grid-template-rows: subgrid;"> </div>'
-console.log(s)
-levelSelectgrid.innerHTML=s
-placement = [
-  [,,"Controls: Movement", "Solid Square", "Repositioning"]
-  ["Dragons","Dragons","Controls: " ]
-  ]
+calcDeps()

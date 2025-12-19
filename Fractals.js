@@ -73,21 +73,12 @@ function saveImage(){
   mkSideCanvas(pts)
 }
 function mkSideCanvas(pts,quick){// assumes pts is never mutated
-  let op=parts
-  parts=pts
-  drawFractal(quick?(carefulDrawCount*2)/(saved.length+1):carefulDrawCount)
-  let newCanvas = document.createElement("canvas")
-  newCanvas.width=100
-  newCanvas.height=100
+  let newCanvas = mkSmallCanvas(pts,quick?(carefulDrawCount*2)/(saved.length+1):carefulDrawCount, 100,100)
   sidediv.prepend(newCanvas)
-  //newCanvas.parts = pts
   newCanvas.addEventListener("click",(e)=>{
     parts = copyparts(pts)
     resetParts()
   })
-  let ctx=newCanvas.getContext("2d")
-  ctx.drawImage(bigPic, ox, oy, w, h, 0, 0, newCanvas.width, newCanvas.height)
-  parts = op
   return newCanvas
 }
 for(let im of saved){
