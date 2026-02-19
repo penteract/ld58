@@ -109,28 +109,32 @@ let targetset
 
 function checkAnswer(r){
   if(targetset){
-    let d = setDist(targetset,r)*thresholdFactorg
+    let d = setDist(targetset,r)*curLevel.thresholdFactor
     distance.innerText=d.toFixed(2)
     distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
-    if (d<=1 && challengeNum==challengeCount){
-      challengeCount+=1
-      localStorage.setItem("challengeCount",challengeCount)
-      if(challengeNum+1==challenges.length){
+    let prevStatus = curLevel.status
+    if (d<=1 && (!prevStatus || prevStatus>parts.length)){
+      //curLevel.status = parts.length
+      nextChallenge = setStatus(curLevel,parts.length)
+      if (! nextChallenge){
+      //if(challengeNum+1==challenges.length){
         alert("Congratulations, you've completed all the challenges, enjoy playing freestyle")
         console.log("TODO: hide challenge related ui")
         saveImage()
         refPic.classList.add("hidden")
       }
       else{
-        askContinue("Congratualtions, Challenge complete (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?",
+        let completemsg = "Congratulations, "+(prevStatus?"Challenge complete":"New lowest piece count")+" (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?"
+        askContinue(completemsg,
           function (contin){
             if (contin){
               challengeNum+=1
               saveImage()
+              curLevel = nextChallenge
               resetChallenge()
             }
             else{
-              nextChallengeButton.classList.remove("hidden")
+              //nextChallengeButton.classList.remove("hidden")
             }
           })
       }
@@ -145,24 +149,22 @@ function setTarget(parts){
   targetParts = parts
   targetset = drawFractalAt(parts,ctx2,carefulDrawCount,true)
 }
-let curHints=[]
 let numHintsShown=0
-function setHints(hints){
+function setHints(){
   hinttext.innerHTML=""
-  curHints=hints
   numHintsShown=0
-  if(hints.length>0)addHint()
+  if(curLevel.hints.length>0)addHint()
 }
 function showSol(){
-  parts = copyparts(targetParts)
+  parts = copyparts(curLevel.target)
   challengeCount=challengeNum+1
-  nextChallengeButton.classList.remove("hidden")
+  //nextChallengeButton.classList.remove("hidden")
   showSolution.classList.add("hidden")
   resetParts()
 }
 function addHint(){
-  hinttext.innerHTML+="<BR>"+curHints[numHintsShown++]
-  if (numHintsShown<curHints.length){
+  hinttext.innerHTML+="<BR>"+curLevel.hints[numHintsShown++]
+  if (numHintsShown<curLevel.hints.length){
     nextHintSpan.classList.remove("hidden")
     showSolution.classList.add("hidden")
   }
@@ -171,17 +173,18 @@ function addHint(){
     showSolution.classList.remove("hidden")
   }
 }
-let thresholdFactorg=1
+let curLevel = null
 function startChallenge(c,keephints){
-  if(challengeCount<=challengeNum) nextChallengeButton.classList.add("hidden")
-  let {target,init,hints,thresholdFactor} = c
-  thresholdFactorg=thresholdFactor??1
-  setTarget(target)
+  outerLevelSelect.classList.add("hidden")
+  //if(challengeCount<=challengeNum) {nextChallengeButton.classList.add("hidden")}
+  curLevel = c
+  //let {target,init,hints,thresholdFactor} = c
+  setTarget(c.target)
   // targetset = drawFractalAt(target,ctx2,carefulDrawCount,true)
-  parts = copyparts(init)
+  parts = copyparts(c.init)
   resetParts()
   drawCarefully()
-  if(!keephints) {setHints(hints)}
+  if(!keephints) {setHints()}
 }
 let challengeCount= +localStorage.getItem("challengeCount") // completed challenges
 let challengeNum = challengeCount
@@ -201,11 +204,16 @@ function nextChallenge(){
   }
 }
 function resetChallenge(keephints){
-  startChallenge(challenges[challengeNum],keephints)
+  startChallenge(curLevel,keephints)
 }
 function resetProgress(){
-  challengeCount=0
-  challengeNum=0
+  for (let lvl of challenges){
+    lvl.status = 0
+    setStatusText(lvl)
+  }
+  saveProgress()
+  calcDeps() // lock everything
+  curLevel = challenges[0]
   resetChallenge()
-  localStorage.setItem("challengeCount",challengeCount)
+  //localStorage.setItem("challengeCount",challengeCount)
 }

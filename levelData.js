@@ -174,6 +174,42 @@ let challenges = [
   },
   */
 ]
+let challengeDict = {}
+let results = localStorage.getItem("results")
+if(results) {results = JSON.parse(results)}
+else {results = {}}
+for(let lvl of challenges){
+  lvl.thresholdFactor??=1
+  challengeDict[lvl.name]=lvl
+  if(results[lvl.name]){
+    lvl.status = results[lvl.name] // 0 means incomplete; other value indicates the number of pieces used
+  }
+}
+function setStatus(lvl, partCount){
+  lvl.status = partCount
+  saveProgress()
+  setStatusText(lvl)
+  //lvl.box.children[lvl.box.childElementCount-1].innerHTML = partCount
+  calcDeps()
+  for(let grp in dependencies){
+    let box = dependencies[grp].box
+    if(!box.classList.contains("locked")){
+      for(let x of challenges){
+        if((x.name===grp || x.group===grp) && !x.status){
+          return x
+        }
+      }
+    }
+  }
+  return null
+}
+function saveProgress(){
+  results = {}
+  for(let name in challengeDict){
+    results[name] = challengeDict[name].status
+  }
+  localStorage.setItem("results", JSON.stringify(results))
+}
 
 let dependencies = {
   "Controls: Move" : [] ,
@@ -187,7 +223,7 @@ let dependencies = {
   "Controls: Create" : ["Solid square"] ,
   "Sierpiński Plus" : ["Controls: Move", "Controls: Resize"] ,
   "Sierpiński carpet" : ["Controls: Move", "Controls: Create", "Controls: Resize"] ,
-  "Solid Rectangle" : ["Polygons", "Controls: Create", "Controls: Delete"] ,
+  "Solid Rectangle" : ["Controls: Create", "Controls: Delete"] ,
   "Fern" : ["Controls: Move", "Controls: Create", "Controls: Delete", "Controls: Resize","Sierpiński carpet"] ,
 }
 
@@ -217,7 +253,7 @@ function levelBox(name,position,arrow){
   div.classList.add("lvlbox")
   div.classList.add("locked")
   div.append(name)
-  if(arrow)div.append(arrow)
+  if(arrow){div.append(arrow)}
   return div
 }
 function singleLvlBox(lvl,position,container,arrow){
@@ -228,12 +264,26 @@ function singleLvlBox(lvl,position,container,arrow){
   div.append(mkSmallCanvas(lvl.target,10000,100,100))
   div.append(document.createElement("br"))
   let sp = document.createElement("span")
-  sp.innerHTML="incomplete"
+  //sp.innerHTML="incomplete"
   div.append(sp)
   lvl.box=div
+  setStatusText(lvl)
+  div.addEventListener("click",()=>startChallenge(lvl))
   container.append(div)
   occupied[position]=true
   return div
+}
+function setStatusText(lvl){
+  let box = lvl.box
+  let tbox = box.children[box.childElementCount-1]
+  if (lvl.status){
+    let par = lvl.par ?? lvl.init.length
+    tbox.innerHTML = lvl.status+ " parts " + "★".repeat(1 + (lvl.status<=par+1) + (lvl.status<=par) + (lvl.status<par))
+    box.classList.remove("incomplete")
+  } else {
+    tbox.innerHTML = "incomplete"
+    box.classList.add("incomplete")
+  }
 }
 function lvlGroupBox(grp,position,container,arrow){
   console.log(position)
@@ -317,9 +367,17 @@ for(let grp in dependencies){
 function calcDeps(){
   for(let grp in dependencies){
     let deps = dependencies[grp]
-    if(!deps.some(x=>!challenges[x].status)){
+    if(!deps.some(x=>!challengeDict[x].status)){
       deps.box.classList.remove("locked")
+    }
+    else{
+      deps.box.classList.add("locked")
     }
   }
 }
 calcDeps()
+function levelSelect(){
+  calcDeps()
+  outerLevelSelect.classList.remove("hidden")
+}
+let par = '{"Controls: Move":3,"Solid square":2,"Repositioning":3,"Controls: Rotate":3,"Solid Triangle":3,"Right Isoceles triangle":2,"Twin Dragon":2,"Controls: Create":4,"Sierpiński Plus":4}'
