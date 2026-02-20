@@ -8,10 +8,12 @@ function partToMatrix(p){
   //  return new DOMMatrix().translate((p.x-p.w/2)*h,(p.y-p.h/2)*w).scale(p.w,p.h).rotate(p.rot)
   return m
 }
+function determinant(mat){
+  return mat.a*mat.d - mat.b*mat.c
+}
 
 // how much detail should be used to track the sets
 let MaxSearchDepth = 8;
-
 // Draw a fractal described by parts onto canvas with context ctx using n iterations and
 // returning a 2d segment tree describing the set of visited points if count is true
 function drawFractalAt(parts,ctx,n,count){
@@ -33,18 +35,32 @@ function drawFractalAt(parts,ctx,n,count){
   let rtn = Math.sqrt(n)
   let mxs = {x:-Infinity,y:-Infinity}
   let mns = {x:Infinity,y:Infinity}
+  let cumArea = 0
+  let cumAreas = mats.map( m => cumArea+=Math.max(0.01, Math.abs(determinant(m))) )
+  function randomMat(){
+    let val = Math.random()*cumArea
+    let l = 0
+    let r = cumAreas.length-1
+    while (l < r){
+      let mid = (l+r)>>1
+      if (cumAreas[mid] <= val) {l = mid+1}
+      else {r = mid}
+    }
+    return r
+  }
+
   for(let i=0;i<100;i++){
-    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+    p = mats[randomMat()].transformPoint(p)
   }
   for(let i=0;i<rtn;i++){
-    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+    p = mats[randomMat()].transformPoint(p)
     for(let c of "xy"){
       if(mxs[c]<p[c])mxs[c]=p[c]
       if(mns[c]>p[c])mns[c]=p[c]
     }
   }
   for(let i=0;i<n;i++){
-    p = mats[(Math.random()*mats.length)|0].transformPoint(p)
+    p = mats[randomMat()].transformPoint(p)
     ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
     if(count){
       let x=p.x-ox

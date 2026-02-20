@@ -10,6 +10,7 @@ let challenges = [
     "Reset the challenge if you're stuck. For this one, you only need to move the grey squares around which you can do by dragging the middle of them"
   ]
   , name : "Controls: Move"
+  , par : 3
   },
   {
     target : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.25,y:0.25,w:0.5,h:0.5,rot:0}]
@@ -19,6 +20,7 @@ let challenges = [
   ]
   , name : "Solid square" 
   , thresholdFactor : 10
+  , par : 2
   },
   {
     target : [{x:0.6666666666666666,y:0.375,w:0.5,h:0.5,rot:360},{x:0.3333333333333333,y:0.625,w:0.5,h:0.5,rot:0},{x:0.625,y:0.6666666666666666,w:0.5,h:0.5,rot:0},{x:0.375,y:0.3333333333333333,w:0.5,h:0.5,rot:0}]
@@ -28,6 +30,7 @@ let challenges = [
   ]
   , name : "Repositioning"
   , thresholdFactor : 10
+  , par : 4
   },
   {
     target : [{x:0.25,y:0.75,w:0.5,h:0.5,rot:90},{x:0.75,y:0.75,w:0.5,h:0.5,rot:360},{x:0.75,y:0.25,w:0.5,h:0.5,rot:270}]
@@ -36,6 +39,7 @@ let challenges = [
       "Reset the challenge if you're stuck. Rotate the bottom left part by 90 degrees clockwise and"+
       " the top right part by 90 degrees clockwise."]
   , name : "Controls: Rotate"
+  , par : 3
   },
   {
     target :[{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.75,w:0.5,h:0.5,rot:540}]
@@ -47,6 +51,7 @@ let challenges = [
     "Reset the challenge if you're stuck. Rotate one copy by 180 degrees, nothing needs to be resized"
   ]
   , name : "Solid Triangle"
+  , par : 3
   , thresholdFactor : 10
   , group : "Polygons"
   },
@@ -59,6 +64,7 @@ let challenges = [
            "The snap rotation setting in 'control configuration' below can be useful"]
   , name : "Right Isoceles triangle"
   , group : "Polygons"
+  , par : 2
   },
   {
     target:[{x:0.6666666666666666,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:585},{x:0.3333333333333333,y:0.5,w:-0.7071067811865475,h:-0.7071067811865475,rot:585}]
@@ -69,6 +75,7 @@ let challenges = [
            "The snap rotation setting in 'control configuration' below can be useful"]
   , name : "Twin Dragon"
   , group : "Dragons"
+  , par : 2
   },
   {
     target : [{x:0.6666666666666667,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:405},{x:0.33333333333333337,y:0.5,w:0.7071067811865475,h:0.7071067811865475,rot:315}]
@@ -78,6 +85,7 @@ let challenges = [
             "The snap rotation setting in 'control configuration' below can be useful"]
   , name : "Lévy Dragon"
   , group : "Dragons"
+  , par : 2
   },
   {
     target : [{x:0.75,y:0.375,w:0.7071067811865475,h:0.7071067811865475,rot:495},{x:0.4166666666666667,y:0.6666666666666666,w:0.7071067811865475,h:0.7071067811865475,rot:405}]
@@ -87,6 +95,7 @@ let challenges = [
             "The snap rotation setting in 'control configuration' below can be useful"]
   , name : "Heighway Dragon"
   , group : "Dragons"
+  , par : 2
   },
 
   {
@@ -96,6 +105,7 @@ let challenges = [
     "Reset the challenge if you're stuck. This one can be solved by deleting a single part and then moving parts until the white line matches the red line"
   ]
   , name : "Controls: Delete"
+  , par : 2
   },
   {
     target : [{x:0.8333333333333334,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:-0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360}]
@@ -106,6 +116,7 @@ let challenges = [
     "Reset the challenge if you're stuck. This one can be solved by making one of the parts bigger and three of them smaller."
   ]
   , name : "Controls: Resize"
+  , par : 2
   },
 
   {
@@ -116,6 +127,7 @@ let challenges = [
   ]
   , name : "Controls: Create"
   , thresholdFactor : 10
+  , par : 2
   },
   {
     target : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0},{x:0.5,y:0.625,w:0.25,h:0.25,rot:0}]
@@ -125,12 +137,14 @@ let challenges = [
     "Reset the challenge if you're stuck. This one can be solved by creating a part, making it a bit smaller, and putting it in the middle"
   ]
   , name : "Sierpiński Plus"
+  , par : 4
   },
   {
     target : [{x:0.5,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.8333333333333334,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.5,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
   , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
   , hints : ["You'll need to make a few new pieces for this one"]
   , name : "Sierpiński carpet"
+  , par : 3
   },
   
   {
@@ -146,6 +160,7 @@ let challenges = [
   ]
   , name : "Solid Rectangle"
   , thresholdFactor : 10
+  , par : 2
   //, group : "Polygons"
   },
   {
@@ -156,6 +171,7 @@ let challenges = [
     "A piece can become a scaled reflection of the whole thing if you drag one of the side handles to give it a negative width or height"
   ]
   , name : "Fern"
+  , par : 2
   },
   /*
   {

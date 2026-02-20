@@ -191,6 +191,12 @@ document.addEventListener("pointerdown",(e)=>
 let keyboardTimeout
 document.addEventListener("keydown",(e)=>{
   let unhandled=undefined;
+  if (!outerLevelSelect.classList.contains("hidden")){
+    if (e.key=="Escape"){
+      outerLevelSelect.classList.add("hidden")
+    }
+    else return;
+  }
   switch(e.key){
     case "z":
       if (e.ctrlKey && histIx>0){

@@ -128,7 +128,7 @@ function checkAnswer(r){
         askContinue(completemsg,
           function (contin){
             if (contin){
-              challengeNum+=1
+              //challengeNum+=1
               saveImage()
               curLevel = nextChallenge
               resetChallenge()
@@ -157,7 +157,6 @@ function setHints(){
 }
 function showSol(){
   parts = copyparts(curLevel.target)
-  challengeCount=challengeNum+1
   //nextChallengeButton.classList.remove("hidden")
   showSolution.classList.add("hidden")
   resetParts()
@@ -186,12 +185,11 @@ function startChallenge(c,keephints){
   drawCarefully()
   if(!keephints) {setHints()}
 }
-let challengeCount= +localStorage.getItem("challengeCount") // completed challenges
-let challengeNum = challengeCount
+startChallenge(challenges[0]) // TODO: start most recently completed challenge
 // Initialisation of parts and main canvas
-if(challengeNum<challenges.length) startChallenge(challenges[challengeNum])
-else{resetParts()}
-function nextChallenge(){
+//if(challengeNum<challenges.length) startChallenge(challenges[challengeNum])
+//resetParts()
+/*function nextChallenge(){
   if(challengeNum<challenges.length-1){
     ++challengeNum
     resetChallenge()
@@ -202,7 +200,7 @@ function nextChallenge(){
     console.log("TODO: hide challenge related ui")
     refPic.classList.add("hidden")
   }
-}
+}*/
 function resetChallenge(keephints){
   startChallenge(curLevel,keephints)
 }

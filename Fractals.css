@@ -121,7 +121,7 @@ circle.rot{
     box-shadow: 0 0 3px #000;
   }
 }
-#nextChallengeButton{
+.flashing{
   filter:none;
   animation: flashing 1s infinite;
 }
