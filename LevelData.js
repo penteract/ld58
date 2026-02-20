@@ -166,9 +166,9 @@ let challenges = [
   {
     target : [{x:0.5416666666666666,y:0.375,w:-0.75,h:0.75,rot:360.9338669250746},{x:0.6666666666666666,y:0.7083333333333334,w:0.5833333333333334,h:0.5833333333333334,rot:396.69768666306084}]
   , init : [{x:0.6666666666666666,y:0.625,w:0.5,h:0.5,rot:360},{x:0.4583333333333333,y:0.4166666666666667,w:0.5,h:0.5,rot:360}]
-  , hints : [ "What a pretty fern",
-    "you'll need to resize parts for this",
-    "A piece can become a scaled reflection of the whole thing if you drag one of the side handles to give it a negative width or height"
+  , hints : [ "Uncheck snapping of positions, sizes and rotation in the control configuration below",
+    "A piece can become a scaled reflection of the whole thing if you drag one of the side handles to give it a negative width or height",
+    "This can be solved with 2 pieces or 3 (all of which can be square), but one of them needs to be reflected."
   ]
   , name : "Fern"
   , par : 2
