@@ -94,8 +94,9 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
 <div id="outeralert" class="hidden">
   <div id="alertdiv">
     <div id="alertmsg"></div>
-    <button id="cancelBut" onclick="cont(false)">Stay on this level</button>
-    <button id="okbut" onclick="cont(true)">Continue</button>
+    <button id="cancelBut" onclick="cont(0)">Stay</button>
+    <button id="okbut" onclick="cont(1)">Continue</button>
+    <button id="selbut" onclick="cont(2)">Level select</button>
   </div>
 </div>
 <script src="Constants.js"></script>

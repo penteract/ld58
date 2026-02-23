@@ -14,7 +14,7 @@ function unhide(x){x.classList.remove("hidden")}
 
 // continue (alerts)
 let cont = undefined // Shouldn't be able to click on continue button while it's hidden
-function askContinue(msg, k){
+function askStayContSelect(msg, k){
   unhide(outeralert)
   alertmsg.innerHTML = msg
   cont = (arg) => {k(arg); hide(outeralert)}
@@ -139,10 +139,15 @@ function checkAnswer(r){
         refPic.classList.add("hidden")
       }
       else{
-        let completemsg = "Congratulations, "+(prevStatus?"Challenge complete":"New lowest piece count")+" (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?"
-        askContinue(completemsg,
+        let completemsg = "Congratulations, "+(prevStatus?"New lowest piece count":"Challenge complete")+" (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?"
+        askStayContSelect(completemsg,
           function (contin){
-            if (contin){
+            if (contin==2){
+              //challengeNum+=1
+              saveImage()
+              levelSelect()
+            }
+            if (contin==1){
               //challengeNum+=1
               saveImage()
               curLevel = nextChallenge
@@ -207,7 +212,7 @@ function startChallenge(c,keephints){
   drawCarefully()
   if(!keephints) {setHints()}
 }
-startChallenge(challenges[0]) // TODO: start most recently completed challenge
+startChallenge(getNextLevel()) // TODO: start most recently completed challenge
 // Initialisation of parts and main canvas
 //if(challengeNum<challenges.length) startChallenge(challenges[challengeNum])
 //resetParts()
