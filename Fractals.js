@@ -108,6 +108,21 @@ const allowed = {
 let targetset
 
 function checkAnswer(r){
+  if(r){
+    // Display the dimension if it looks like it's converging
+    let dims = calcDim(r)
+    dims = dims.slice(dims.length-3)
+    if (Math.max(...dims)-Math.min(...dims) > 0.1){
+      dimension.innerText="?"
+    }
+    else {
+      dimension.innerText = dims[2].toFixed(2)
+    }
+    dims = calcDim(r)
+  }
+  else{
+    dimension.innerText="?"
+  }
   if(targetset){
     let d = setDist(targetset,r)*curLevel.thresholdFactor
     distance.innerText=d.toFixed(2)
@@ -115,7 +130,7 @@ function checkAnswer(r){
     let prevStatus = curLevel.status
     if (d<=1 && (!prevStatus || prevStatus>parts.length)){
       //curLevel.status = parts.length
-      nextChallenge = setStatus(curLevel,parts.length)
+      let nextChallenge = setStatus(curLevel,parts.length)
       if (! nextChallenge){
       //if(challengeNum+1==challenges.length){
         alert("Congratulations, you've completed all the challenges, enjoy playing freestyle")
@@ -139,6 +154,10 @@ function checkAnswer(r){
           })
       }
     }
+  }
+  else{
+    distance.innerText="?"
+    distance.className="exellent"
   }
 }
 let targetParts
@@ -170,6 +189,9 @@ function addHint(){
   else{
     nextHintSpan.classList.add("hidden")
     showSolution.classList.remove("hidden")
+  }
+  if(!curLevel.target.length){
+    showSolution.classList.add("hidden")
   }
 }
 let curLevel = null

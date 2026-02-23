@@ -164,6 +164,10 @@ circle.rot{
   gap: 30px;
   grid-auto-rows: auto;
 }
+.lvlbox{/* make a new stacking context so that everything gets placed correctly around it*/
+  position:relative;
+  z-index:0;
+}
 .lvlbox{
   border: 1px solid white;
   min-width:150px;
@@ -171,14 +175,14 @@ circle.rot{
 .lvlbox:not(.locked)>.incomplete{
   filter:brightness(22%) sepia(100%) contrast(1.4)  hue-rotate(70deg) brightness(450%);
 }
-.lvlbox:not(.locked):not(.lvlgroup){
-  filter:blur(10%);
-}
 /*
 .lvlbox.locked>.incomplete{
   filter: none;
 }*/
-.lvlbox:not(.locked).incomplete{
+#levelSelectgrid>.lvlbox:not(.locked).incomplete{
+  filter:brightness(22%) sepia(100%) contrast(1.4)  hue-rotate(70deg) brightness(450%);
+}
+.lvlgroup:not(.locked)>.lvlbox.incomplete{
   filter:brightness(22%) sepia(100%) contrast(1.4)  hue-rotate(70deg) brightness(450%);
 }
 .lvlbox.locked{
@@ -186,6 +190,14 @@ circle.rot{
 }
 .lvlbox canvas {
   padding-top:2px;
+}
+#levelSelectgrid>.lvlbox:not(.lvlgroup):not(.locked):hover{
+  transform:scale(110%);
+  transform-origin: top;
+}
+.lvlgroup:not(.locked)>.lvlbox:hover{
+  transform-origin: top;
+  transform:scale(110%);
 }
 .lvlgroup{
   margin-top:20px;

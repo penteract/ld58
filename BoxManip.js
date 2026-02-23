@@ -180,7 +180,7 @@ function drawCarefully(){
   clearTimeout(keyboardTimeout)
   conts = drawFractal(carefulDrawCount,true)
   checkAnswer(conts)
-  console.log(calcDim(conts))
+  //console.log(calcDim(conts))
 }
 document.addEventListener("pointerup",pointerEnd)
 document.addEventListener("pointercancel",pointerEnd)

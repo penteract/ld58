@@ -18,7 +18,7 @@ let challenges = [
   , hints : ["A square can be formed out of 4 smaller squares, one in each corner.",
       "Reset the challenge if you're stuck. This can be solved by moving the part in the middle into the top left corner"
   ]
-  , name : "Solid square" 
+  , name : "Solid Square"
   , thresholdFactor : 10
   , par : 2
   },
@@ -62,7 +62,7 @@ let challenges = [
            "Can you see a way to make the red triangle out of 2 copies of itself? How much do they need to be rotated by?",
            "Try rotating both parts by 135 degrees in opposite directions (3/8ths of a full circle). Reset the challenge if you're stuck.",
            "The snap rotation setting in 'control configuration' below can be useful"]
-  , name : "Right Isoceles triangle"
+  , name : "Right Isoceles Triangle"
   , group : "Polygons"
   , par : 2
   },
@@ -143,7 +143,7 @@ let challenges = [
     target : [{x:0.5,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.16666666666666666,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:360},{x:0.8333333333333334,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.16666666666666666,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.8333333333333334,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.5,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.16666666666666666,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0},{x:0.5,y:0.8333333333333334,w:0.3333333333333333,h:0.3333333333333333,rot:0}]
   , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
   , hints : ["You'll need to make a few new pieces for this one"]
-  , name : "Sierpiński carpet"
+  , name : "Sierpiński Carpet"
   , par : 3
   },
   
@@ -173,6 +173,13 @@ let challenges = [
   , name : "Fern"
   , par : 2
   },
+  {
+    target : []
+  , init : [{x:0.75,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
+  , hints : [ "Do whatever you want :)<br>You can adjust the settings below to get more freedom"  ]
+  , name : "Free play"
+  , par : 2
+  },
   /*
   {
     target : 
@@ -190,3 +197,20 @@ let challenges = [
   },
   */
 ]
+
+let dependencies = {
+  "Controls: Move" : [] ,
+  "Solid Square" : ["Controls: Move"] ,
+  "Repositioning" : ["Solid Square"] ,
+  "Controls: Rotate" : ["Controls: Move"] ,
+  "Polygons" : ["Controls: Move", "Controls: Rotate"] ,
+  "Dragons" : ["Controls: Move", "Controls: Rotate"] ,
+  "Controls: Delete" : ["Controls: Move", "Controls: Rotate"] ,
+  "Controls: Resize" : ["Controls: Move", "Controls: Rotate"] ,
+  "Controls: Create" : ["Solid Square"] ,
+  "Sierpiński Plus" : ["Controls: Move", "Controls: Resize"] ,
+  "Sierpiński Carpet" : ["Controls: Move", "Controls: Create", "Controls: Resize"] ,
+  "Solid Rectangle" : ["Controls: Create", "Controls: Delete"] ,
+  "Fern" : ["Controls: Move", "Controls: Create", "Controls: Delete", "Controls: Resize","Sierpiński Carpet"] ,
+  "Free play" : ["Solid Rectangle"]
+}

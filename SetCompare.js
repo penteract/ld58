@@ -44,15 +44,22 @@ function asymmSetDist(r,s){
   }
   return costFrom(0,0,0)
 }
-
-/*
-TODO:
-Better fractal dimension calculation?
-*/
 // Dimension calculation
 function calcDim(conts){
-  return conts.map((c,i)=>{
+  conts = conts.slice(1,conts.length-1) // Discard the most detailed value because we don't draw enough points for it to be reliable
+  let n1 = 1
+  let i1 = 0
+  let allRes = conts.map((c,i)=>{
     let ni = c.reduce(((a,r)=>a+r.reduce(((a,b)=>a+(b!=0)),0)),0)
-    return Math.log2(ni)/i
+    let res = Math.log2(ni/n1)/(i-i1)
+    if (ni>4 && n1<4){
+      i1 = i
+      n1 = ni
+    }
+    return res
   })
+  return allRes
+  //console.log(allRes)
+
+  //return(allRes[allRes.length-1])
 }

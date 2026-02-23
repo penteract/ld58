@@ -14,10 +14,12 @@ function determinant(mat){
 
 // how much detail should be used to track the sets
 let MaxSearchDepth = 8;
+//let containers
+
 // Draw a fractal described by parts onto canvas with context ctx using n iterations and
 // returning a 2d segment tree describing the set of visited points if count is true
 function drawFractalAt(parts,ctx,n,count){
-  if (parts.length<1) return;
+  if (parts.length<1) return null;
   let mats = parts.map(partToMatrix)
   let ptsz = Math.sqrt(w*h/n)
   //ptsz*ptsz*n=w*h
@@ -59,8 +61,12 @@ function drawFractalAt(parts,ctx,n,count){
       if(mns[c]>p[c])mns[c]=p[c]
     }
   }
+  function tr(m,p){
+    return {x:p.x*m.a+p.y*m.c+m.e, y:p.x*m.b+p.y*m.d+m.f}
+  }
   for(let i=0;i<n;i++){
-    p = mats[randomMat()].transformPoint(p)
+    //p = mats[randomMat()].transformPoint(p)
+    p = tr(mats[randomMat()],p)
     ctx.fillRect(p.x-ptsz/2,p.y-ptsz/2,ptsz,ptsz)
     if(count){
       let x=p.x-ox

@@ -16,6 +16,9 @@ function setStatus(lvl, partCount){
   setStatusText(lvl)
   //lvl.box.children[lvl.box.childElementCount-1].innerHTML = partCount
   calcDeps()
+  return getNextLevel()
+}
+function getNextLevel(){
   for(let grp in dependencies){
     let box = dependencies[grp].box
     if(!box.classList.contains("locked")){
@@ -34,22 +37,6 @@ function saveProgress(){
     results[name] = challengeDict[name].status
   }
   localStorage.setItem("results", JSON.stringify(results))
-}
-
-let dependencies = {
-  "Controls: Move" : [] ,
-  "Solid square" : ["Controls: Move"] ,
-  "Repositioning" : ["Solid square"] ,
-  "Controls: Rotate" : ["Controls: Move"] ,
-  "Polygons" : ["Controls: Move", "Controls: Rotate"] ,
-  "Dragons" : ["Controls: Move", "Controls: Rotate"] ,
-  "Controls: Delete" : ["Controls: Move", "Controls: Rotate"] ,
-  "Controls: Resize" : ["Controls: Move", "Controls: Rotate"] ,
-  "Controls: Create" : ["Solid square"] ,
-  "Sierpiński Plus" : ["Controls: Move", "Controls: Resize"] ,
-  "Sierpiński carpet" : ["Controls: Move", "Controls: Create", "Controls: Resize"] ,
-  "Solid Rectangle" : ["Controls: Create", "Controls: Delete"] ,
-  "Fern" : ["Controls: Move", "Controls: Create", "Controls: Delete", "Controls: Resize","Sierpiński carpet"] ,
 }
 
 function mkArrow(dir){
@@ -82,7 +69,7 @@ function levelBox(name,position,arrow){
   return div
 }
 function singleLvlBox(lvl,position,container,arrow){
-  console.log(position)
+  //console.log(position)
 
   let div = levelBox(lvl.name,position,arrow)
   div.append(document.createElement("br"))
@@ -111,7 +98,7 @@ function setStatusText(lvl){
   }
 }
 function lvlGroupBox(grp,position,container,arrow){
-  console.log(position)
+  //console.log(position)
   let [[x1,x2],[y1,y2]] = position
   let h = document.createElement("h2")
   h.append(grp)
@@ -153,7 +140,7 @@ let positions = {}
 let occupied = {}
 let i=0
 for(let grp in dependencies){
-  console.log(grp)
+  //console.log(grp)
   let itms = inGroup[grp]
   let deps = dependencies[grp]
   if (grp.startsWith("Controls: ")){
