@@ -144,6 +144,7 @@ let challenges = [
   , init : [{x:0.5,y:0.25,w:0.5,h:0.5,rot:360},{x:0.25,y:0.75,w:0.5,h:0.5,rot:0},{x:0.75,y:0.75,w:0.5,h:0.5,rot:0}]
   , hints : ["You'll need to make a few new pieces for this one"]
   , name : "Sierpiński Carpet"
+  , thresholdFactor : 5
   , par : 3
   },
   

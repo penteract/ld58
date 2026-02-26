@@ -178,7 +178,7 @@ function drawCarefully(){
   let jparts = JSON.stringify(copyparts(parts))
   if(jparts!=hist[histIx][0]) hist.splice(++histIx, 0, [jparts,parts.indexOf(selected)])
   clearTimeout(keyboardTimeout)
-  conts = drawFractal(carefulDrawCount,true)
+  conts = drawFractal(getDrawCount(),true)
   checkAnswer(conts)
   //console.log(calcDim(conts))
 }

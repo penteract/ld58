@@ -31,7 +31,9 @@ snap: <input type="checkbox" id="snappositions" name="snappositions" checked="fa
 <input type="checkbox" id="snaprotations" name="snaprotations" checked="false"><label for="snaprotations">rotation</label>
 <br>
 <input type="checkbox" id="match" name="match" checked="true"><label for="match">match width and height (keep parts square)</label><br>
-<input type="checkbox" id="center" name="center" checked="false"><label for="center">resize around center </label>
+<input type="checkbox" id="center" name="center" checked="false"><label for="center">resize around center </label><br>
+<label for="detail">Drawing detail:</label> fast <input type="range" id="detail" name="detail" min="-4" max="4" step="1" value="0" onchange="setTarget(curLevel.target)" /> detailed
+
 </fieldset>
 <!-- TODO:  -->
 <!--<fieldset>

@@ -123,8 +123,8 @@ function checkAnswer(r){
   else{
     dimension.innerText="?"
   }
-  if(targetset){
-    let d = setDist(targetset,r)*curLevel.thresholdFactor
+  if(targetset && targetset.length == r.length){ // not equal when the pointerend event fires before the onchange event
+    let d = (setDist(targetset,r)*curLevel.thresholdFactor) / 2**(2*(r.length - 9))
     distance.innerText=d.toFixed(2)
     distance.className=d>100?"nowhere":d>10?"bad":d>1?"near":d>0.1?"good":"exellent"
     let prevStatus = curLevel.status
@@ -139,7 +139,7 @@ function checkAnswer(r){
         refPic.classList.add("hidden")
       }
       else{
-        let completemsg = "Congratulations, "+(prevStatus?"New lowest piece count":"Challenge complete")+" (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?"
+        let completemsg = "Congratulations, "+(prevStatus?"new lowest piece count":"challenge complete")+" (distance "+d.toFixed(3)+").<br>\n Save this fractal and continue to the next challenge?"
         askStayContSelect(completemsg,
           function (contin){
             if (contin==2){
@@ -155,6 +155,7 @@ function checkAnswer(r){
             }
             else{
               //nextChallengeButton.classList.remove("hidden")
+              levelSelectButton.classList.add("flashing")
             }
           })
       }
@@ -166,12 +167,15 @@ function checkAnswer(r){
   }
 }
 let targetParts
+function getDrawCount(){
+  return carefulDrawCount*(2**detail.value)
+}
 function setTarget(parts){
   refPic.classList.remove("hidden")
   refPic.width|=0
   ctx2.fillStyle="#F00"
   targetParts = parts
-  targetset = drawFractalAt(parts,ctx2,carefulDrawCount,true)
+  targetset = drawFractalAt(parts,ctx2,getDrawCount(),true)
 }
 let numHintsShown=0
 function setHints(){
@@ -202,6 +206,7 @@ function addHint(){
 let curLevel = null
 function startChallenge(c,keephints){
   outerLevelSelect.classList.add("hidden")
+  levelSelectButton.classList.remove("flashing")
   //if(challengeCount<=challengeNum) {nextChallengeButton.classList.add("hidden")}
   curLevel = c
   //let {target,init,hints,thresholdFactor} = c
